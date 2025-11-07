@@ -10,9 +10,19 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
 });
 
+export const qrCodeGroups = pgTable("qr_code_groups", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  name: text("name").notNull(),
+  baseUrl: text("base_url").notNull(),
+  description: text("description"),
+  createdAt: text("created_at").notNull(),
+});
+
 export const qrCodes = pgTable("qr_codes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
+  groupId: varchar("group_id"),
   title: text("title").notNull(),
   destinationUrl: text("destination_url").notNull(),
   shortCode: text("short_code").notNull().unique(),
@@ -29,6 +39,12 @@ export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
 });
 
+export const insertQRCodeGroupSchema = createInsertSchema(qrCodeGroups).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+});
+
 export const insertQRCodeSchema = createInsertSchema(qrCodes).omit({
   id: true,
   userId: true,
@@ -41,5 +57,7 @@ export const insertQRCodeSchema = createInsertSchema(qrCodes).omit({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type InsertQRCodeGroup = z.infer<typeof insertQRCodeGroupSchema>;
+export type QRCodeGroup = typeof qrCodeGroups.$inferSelect;
 export type InsertQRCode = z.infer<typeof insertQRCodeSchema>;
 export type QRCode = typeof qrCodes.$inferSelect;

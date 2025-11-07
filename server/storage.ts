@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type QRCode, type InsertQRCode } from "@shared/schema";
+import { type User, type InsertUser, type QRCode, type InsertQRCode, type QRCodeGroup, type InsertQRCodeGroup } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -13,16 +13,25 @@ export interface IStorage {
   updateQRCode(id: string, updates: Partial<QRCode>): Promise<QRCode | undefined>;
   deleteQRCode(id: string): Promise<boolean>;
   incrementScanCount(shortCode: string): Promise<void>;
+  
+  createGroup(group: InsertQRCodeGroup & { userId: string }): Promise<QRCodeGroup>;
+  getGroup(id: string): Promise<QRCodeGroup | undefined>;
+  getGroupsByUser(userId: string): Promise<QRCodeGroup[]>;
+  updateGroup(id: string, updates: Partial<QRCodeGroup>): Promise<QRCodeGroup | undefined>;
+  deleteGroup(id: string): Promise<boolean>;
+  getQRCodesByGroup(groupId: string): Promise<QRCode[]>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private qrCodes: Map<string, QRCode>;
+  private groups: Map<string, QRCodeGroup>;
   private shortCodeIndex: Map<string, string>;
 
   constructor() {
     this.users = new Map();
     this.qrCodes = new Map();
+    this.groups = new Map();
     this.shortCodeIndex = new Map();
   }
 
@@ -104,6 +113,55 @@ export class MemStorage implements IStorage {
     qrCode.scanCount++;
     qrCode.lastScanned = new Date().toISOString();
     this.qrCodes.set(id, qrCode);
+  }
+
+  async createGroup(data: InsertQRCodeGroup & { userId: string }): Promise<QRCodeGroup> {
+    const id = randomUUID();
+    const group: QRCodeGroup = {
+      ...data,
+      id,
+      createdAt: new Date().toISOString(),
+    };
+    this.groups.set(id, group);
+    return group;
+  }
+
+  async getGroup(id: string): Promise<QRCodeGroup | undefined> {
+    return this.groups.get(id);
+  }
+
+  async getGroupsByUser(userId: string): Promise<QRCodeGroup[]> {
+    return Array.from(this.groups.values())
+      .filter((group) => group.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async updateGroup(id: string, updates: Partial<QRCodeGroup>): Promise<QRCodeGroup | undefined> {
+    const group = this.groups.get(id);
+    if (!group) return undefined;
+    
+    const updated = { ...group, ...updates };
+    this.groups.set(id, updated);
+    return updated;
+  }
+
+  async deleteGroup(id: string): Promise<boolean> {
+    const group = this.groups.get(id);
+    if (!group) return false;
+    
+    const groupQRCodes = await this.getQRCodesByGroup(id);
+    for (const qr of groupQRCodes) {
+      await this.updateQRCode(qr.id, { groupId: null });
+    }
+    
+    this.groups.delete(id);
+    return true;
+  }
+
+  async getQRCodesByGroup(groupId: string): Promise<QRCode[]> {
+    return Array.from(this.qrCodes.values())
+      .filter((qr) => qr.groupId === groupId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
   private generateShortCode(): string {

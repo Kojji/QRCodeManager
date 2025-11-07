@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import {
   Dialog,
@@ -18,9 +19,16 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { type QRCode } from "@shared/schema";
+import { type QRCode, type QRCodeGroup } from "@shared/schema";
 import QRCodeLib from "qrcode";
 
 const formSchema = z.object({
@@ -29,6 +37,7 @@ const formSchema = z.object({
   foregroundColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color format"),
   backgroundColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color format"),
   size: z.number().min(128).max(1024),
+  groupId: z.string().nullable().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -44,6 +53,10 @@ interface QRCodeDialogProps {
 export function QRCodeDialog({ open, onOpenChange, onSave, editingQRCode, isPending }: QRCodeDialogProps) {
   const [previewUrl, setPreviewUrl] = useState<string>("");
 
+  const { data: groups = [] } = useQuery<QRCodeGroup[]>({
+    queryKey: ["/api/groups"],
+  });
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -52,6 +65,7 @@ export function QRCodeDialog({ open, onOpenChange, onSave, editingQRCode, isPend
       foregroundColor: "#000000",
       backgroundColor: "#ffffff",
       size: 256,
+      groupId: null,
     },
   });
 
@@ -63,6 +77,7 @@ export function QRCodeDialog({ open, onOpenChange, onSave, editingQRCode, isPend
         foregroundColor: editingQRCode.foregroundColor,
         backgroundColor: editingQRCode.backgroundColor,
         size: editingQRCode.size,
+        groupId: editingQRCode.groupId || null,
       });
     } else {
       form.reset({
@@ -71,6 +86,7 @@ export function QRCodeDialog({ open, onOpenChange, onSave, editingQRCode, isPend
         foregroundColor: "#000000",
         backgroundColor: "#ffffff",
         size: 256,
+        groupId: null,
       });
     }
   }, [editingQRCode, form]);
@@ -144,6 +160,35 @@ export function QRCodeDialog({ open, onOpenChange, onSave, editingQRCode, isPend
                         data-testid="input-qr-url"
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="groupId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Group (Optional)</FormLabel>
+                    <Select
+                      value={field.value || "none"}
+                      onValueChange={(value) => field.onChange(value === "none" ? null : value)}
+                    >
+                      <FormControl>
+                        <SelectTrigger data-testid="select-qr-group">
+                          <SelectValue placeholder="No group" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">No group</SelectItem>
+                        {groups.map((group) => (
+                          <SelectItem key={group.id} value={group.id}>
+                            {group.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -14,13 +14,18 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { QrCode, LayoutDashboard, LogOut, Sparkles } from "lucide-react";
+import { QrCode, LayoutDashboard, LogOut, Sparkles, FolderKanban } from "lucide-react";
 
 const navigation = [
   {
     title: "Dashboard",
     url: "/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Groups",
+    url: "/groups",
+    icon: FolderKanban,
   },
 ];
 

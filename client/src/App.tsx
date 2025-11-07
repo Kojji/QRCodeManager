@@ -11,6 +11,8 @@ import { AppSidebar } from "@/components/app-sidebar";
 import LoginPage from "@/pages/login";
 import SignupPage from "@/pages/signup";
 import DashboardPage from "@/pages/dashboard";
+import GroupsPage from "@/pages/groups";
+import GroupDetailPage from "@/pages/group-detail";
 import QRRedirectPage from "@/pages/qr-redirect";
 import NotFound from "@/pages/not-found";
 
@@ -42,6 +44,12 @@ function Router() {
       <Route path="/qr/:shortCode" component={QRRedirectPage} />
       <Route path="/dashboard">
         {() => <ProtectedRoute component={DashboardPage} />}
+      </Route>
+      <Route path="/groups">
+        {() => <ProtectedRoute component={GroupsPage} />}
+      </Route>
+      <Route path="/groups/:id">
+        {() => <ProtectedRoute component={GroupDetailPage} />}
       </Route>
       <Route path="/">
         {() => (user ? <Redirect to="/dashboard" /> : <Redirect to="/login" />)}
