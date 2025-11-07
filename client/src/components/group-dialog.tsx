@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertQRCodeGroupSchema, type InsertQRCodeGroup, type QRCodeGroup } from "@shared/schema";
@@ -37,11 +37,27 @@ export function GroupDialog({ open, onOpenChange, group }: GroupDialogProps) {
   const form = useForm<InsertQRCodeGroup>({
     resolver: zodResolver(insertQRCodeGroupSchema),
     defaultValues: {
-      name: group?.name || "",
-      baseUrl: group?.baseUrl || "",
-      description: group?.description || "",
+      name: "",
+      baseUrl: "",
+      description: "",
     },
   });
+
+  useEffect(() => {
+    if (group) {
+      form.reset({
+        name: group.name,
+        baseUrl: group.baseUrl,
+        description: group.description || "",
+      });
+    } else {
+      form.reset({
+        name: "",
+        baseUrl: "",
+        description: "",
+      });
+    }
+  }, [group, form]);
 
   const createMutation = useMutation({
     mutationFn: (data: InsertQRCodeGroup) =>
@@ -93,6 +109,15 @@ export function GroupDialog({ open, onOpenChange, group }: GroupDialogProps) {
     }
   };
 
+  const handleBaseUrlBlur = () => {
+    const currentUrl = form.getValues("baseUrl");
+    if (currentUrl && !currentUrl.startsWith("http://") && !currentUrl.startsWith("https://")) {
+      form.setValue("baseUrl", `https://${currentUrl}`, {
+        shouldValidate: true,
+      });
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
@@ -136,8 +161,9 @@ export function GroupDialog({ open, onOpenChange, group }: GroupDialogProps) {
                   <FormControl>
                     <Input
                       {...field}
-                      placeholder="https://example.com"
+                      placeholder="example.com"
                       type="url"
+                      onBlur={handleBaseUrlBlur}
                       data-testid="input-group-base-url"
                     />
                   </FormControl>
