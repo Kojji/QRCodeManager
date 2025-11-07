@@ -5,7 +5,9 @@ QRFlow is a microSaaS application for creating and managing dynamic QR codes wit
 
 ## Purpose
 - Create dynamic QR codes with customizable colors and sizes
+- Organize QR codes into groups for campaign management
 - Track QR code scan analytics (count, last scanned date)
+- Visualize URL variations across groups (paths and parameters)
 - Update QR code destinations without changing the code itself
 - Download QR codes in PNG format
 - Manage multiple QR codes from a centralized dashboard
@@ -17,7 +19,11 @@ The application is fully functional with:
   - No backend user validation (as requested for MVP demo)
   - All QR codes stored under single demo user for simplicity
 - In-memory NoSQL-style storage
-- Complete CRUD operations for QR codes
+- Complete CRUD operations for QR codes and groups
+- **QR Code Groups** for organizing codes with URL variations
+  - Group QR codes that share a base URL
+  - Visualize path and parameter variations
+  - Track group-level analytics
 - Dynamic redirect system with analytics tracking
 - Beautiful, responsive UI with dark mode support
 - Professional dashboard with statistics and management tools
@@ -25,6 +31,14 @@ The application is fully functional with:
 **Note**: This is an MVP demo with intentionally simplified authentication. Multi-user support and persistent auth are documented in "Future Enhancements" section.
 
 ## Recent Changes (November 7, 2025)
+- **QR Code Groups Feature** (Latest)
+  - Added QRCodeGroup schema with full CRUD operations
+  - Created Groups page with list view and group cards
+  - Implemented Group Detail page with URL variation visualization
+  - Added group selector to QR code creation/edit dialog
+  - Built group analytics (total scans, QR count, avg scans per code)
+  - Automatic URL variation detection (paths vs parameters)
+  - End-to-end tested and verified all functionality
 - Initial project setup with schema-first development
 - Implemented complete data models for Users and QR Codes
 - Created beautiful authentication pages (Login/Signup) with mocked auth flow
@@ -72,15 +86,26 @@ The application is fully functional with:
    - Live preview during creation/editing
    - Download as PNG
    - Toggle active/inactive status
+   - Assign QR codes to groups
    - Delete QR codes
 
-3. **Analytics**
+3. **QR Code Groups**
+   - Create groups to organize related QR codes
+   - Set base URL for group consistency
+   - Visualize URL variations (paths vs parameters)
+   - Track group-level analytics
+   - View all QR codes within a group
+   - Edit and delete groups
+   - Optional group assignment for flexibility
+
+4. **Analytics**
    - Track total scans per QR code
    - Record last scanned timestamp
    - Display aggregate statistics
    - Calculate average scans per code
+   - Group-level analytics (total scans, QR count)
 
-4. **Dynamic Redirects**
+5. **Dynamic Redirects**
    - Short code generation (6 characters)
    - Automatic redirect on scan
    - Scan count incrementation
@@ -94,7 +119,8 @@ client/
       ui/ - Shadcn UI components
       app-sidebar.tsx - Navigation sidebar
       qr-code-card.tsx - QR code display card
-      qr-code-dialog.tsx - Create/edit modal
+      qr-code-dialog.tsx - Create/edit modal with group selector
+      group-dialog.tsx - Create/edit group modal
       stats-card.tsx - Statistics display
       theme-provider.tsx - Dark mode provider
       theme-toggle.tsx - Theme switch button
@@ -105,6 +131,8 @@ client/
       login.tsx - Login page
       signup.tsx - Signup page
       dashboard.tsx - Main dashboard
+      groups.tsx - Groups list page
+      group-detail.tsx - Group detail with analytics
       qr-redirect.tsx - QR scan redirect handler
       not-found.tsx - 404 page
     App.tsx - Main app with routing
@@ -119,12 +147,22 @@ shared/
 ```
 
 ### API Endpoints
+
+**QR Codes**
 - `POST /api/qrcodes` - Create new QR code
 - `GET /api/qrcodes` - Get all QR codes for user
 - `GET /api/qrcodes/:id` - Get specific QR code
 - `PATCH /api/qrcodes/:id` - Update QR code
 - `DELETE /api/qrcodes/:id` - Delete QR code
 - `GET /api/qr/:shortCode` - Redirect and track scan
+
+**Groups**
+- `POST /api/groups` - Create new group
+- `GET /api/groups` - Get all groups for user
+- `GET /api/groups/:id` - Get specific group
+- `PATCH /api/groups/:id` - Update group
+- `DELETE /api/groups/:id` - Delete group
+- `GET /api/groups/:id/qrcodes` - Get all QR codes in group
 
 ### Design System
 - Primary color: Purple (#8B5CF6 - 262 83% 58%)
