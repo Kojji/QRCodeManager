@@ -198,7 +198,12 @@ export function StaticQRDialog({ open, onOpenChange }: StaticQRDialogProps) {
                         type="number"
                         min={128}
                         max={1024}
-                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          if (!isNaN(value)) {
+                            field.onChange(Math.max(128, Math.min(1024, value)));
+                          }
+                        }}
                         data-testid="input-static-size"
                       />
                     </FormControl>

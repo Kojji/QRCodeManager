@@ -31,7 +31,21 @@ The application is fully functional with:
 **Note**: This is an MVP demo with intentionally simplified authentication. Multi-user support and persistent auth are documented in "Future Enhancements" section.
 
 ## Recent Changes (November 7, 2025)
-- **QR Code Analytics Feature** (Latest)
+- **Static QR Code Feature** (Latest)
+  - Added "Static QR Code" button to sidebar under Actions section
+  - Created dialog to generate QR codes without database storage
+  - Live preview with instant updates on any field change
+  - Customizable foreground/background colors and size (128-1024px)
+  - Auto-prepend "https://" to URLs without protocol
+  - Download generated QR codes as PNG files
+  - Form auto-resets when dialog closes
+  - Input validation prevents NaN values in size field
+  - End-to-end tested and architect-approved
+- **Auto-prepend HTTPS to Group Base URL**
+  - Applied same auto-prepend functionality from QR Code dialog
+  - Fixed form population bug in Edit Group dialog using useEffect
+  - Works in both create and edit workflows
+- **QR Code Analytics Feature**
   - Added scan history tracking with timestamps
   - Created analytics dialog showing 4 key metrics:
     - Total scans since creation
@@ -99,7 +113,7 @@ The application is fully functional with:
    - No real password validation (demo purposes)
    - Persistent session across page reloads
 
-2. **QR Code Management**
+2. **Dynamic QR Code Management**
    - Create QR codes with custom titles and URLs
    - Customize foreground/background colors
    - Set custom size (128-1024 pixels)
@@ -108,6 +122,15 @@ The application is fully functional with:
    - Toggle active/inactive status
    - Assign QR codes to groups
    - Delete QR codes
+
+2a. **Static QR Code Generation**
+   - Quick QR code creation without database storage
+   - Perfect for one-time use or testing
+   - Accessible via sidebar "Static QR Code" button
+   - Same customization options (colors, size)
+   - Instant live preview on canvas
+   - Direct download as PNG
+   - No account/storage overhead
 
 3. **QR Code Groups**
    - Create groups to organize related QR codes
