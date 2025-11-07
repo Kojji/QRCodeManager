@@ -126,7 +126,7 @@ export function StaticQRDialog({ open, onOpenChange }: StaticQRDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Create Static QR Code</DialogTitle>
           <DialogDescription>
@@ -135,7 +135,7 @@ export function StaticQRDialog({ open, onOpenChange }: StaticQRDialogProps) {
         </DialogHeader>
 
         <Form {...form}>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-4 overflow-y-auto">
             <FormField
               control={form.control}
               name="url"
