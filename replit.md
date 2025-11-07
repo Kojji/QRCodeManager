@@ -31,7 +31,27 @@ The application is fully functional with:
 **Note**: This is an MVP demo with intentionally simplified authentication. Multi-user support and persistent auth are documented in "Future Enhancements" section.
 
 ## Recent Changes (November 7, 2025)
-- **QR Code Groups Feature** (Latest)
+- **QR Code Analytics Feature** (Latest)
+  - Added scan history tracking with timestamps
+  - Created analytics dialog showing 4 key metrics:
+    - Total scans since creation
+    - Scans for current month
+    - Average scans per month
+    - Percentage change (current month vs average)
+  - Added "Scans" button to QR code dropdown menu
+  - Color-coded trend indicators (green/red for increase/decrease)
+  - Quick stats showing creation date, last scanned time, and status
+  - End-to-end tested with multiple scans
+- **Enhanced QR Code Dialog**
+  - Added URL parameters field for easier campaign tracking
+  - Auto-prepend "https://" to URLs without protocol
+  - Automatic parameter extraction when editing existing codes
+  - Live preview updates with combined URL and parameters
+- **Auth Route Protection**
+  - Implemented AuthRoute component to prevent logged-in users from accessing login/signup
+  - Sidebar hidden on authentication pages
+  - Automatic redirect to dashboard when logged-in users try to access auth pages
+- **QR Code Groups Feature**
   - Added QRCodeGroup schema with full CRUD operations
   - Created Groups page with list view and group cards
   - Implemented Group Detail page with URL variation visualization
@@ -98,18 +118,29 @@ The application is fully functional with:
    - Edit and delete groups
    - Optional group assignment for flexibility
 
-4. **Analytics**
+4. **Individual QR Code Analytics**
+   - View detailed analytics for each QR code via "Scans" menu item
+   - Total scans since creation
+   - Current month scan count
+   - Average scans per month (calculated from creation date)
+   - Percentage change (current month vs average)
+   - Visual trend indicators (green up arrow, red down arrow)
+   - Quick stats: creation date, last scanned time, active status
+   - Scan history tracking with timestamps
+
+5. **Analytics Dashboard**
    - Track total scans per QR code
    - Record last scanned timestamp
    - Display aggregate statistics
    - Calculate average scans per code
    - Group-level analytics (total scans, QR count)
 
-5. **Dynamic Redirects**
+6. **Dynamic Redirects**
    - Short code generation (6 characters)
    - Automatic redirect on scan
-   - Scan count incrementation
+   - Scan count incrementation with timestamp tracking
    - Active/inactive status enforcement
+   - Scan history tracking for analytics
 
 ### File Structure
 ```
@@ -119,7 +150,8 @@ client/
       ui/ - Shadcn UI components
       app-sidebar.tsx - Navigation sidebar
       qr-code-card.tsx - QR code display card
-      qr-code-dialog.tsx - Create/edit modal with group selector
+      qr-code-dialog.tsx - Create/edit modal with group selector and URL parameters
+      qr-analytics-dialog.tsx - Analytics dialog with scan statistics
       group-dialog.tsx - Create/edit group modal
       stats-card.tsx - Statistics display
       theme-provider.tsx - Dark mode provider

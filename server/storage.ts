@@ -59,9 +59,14 @@ export class MemStorage implements IStorage {
       ...data,
       id,
       shortCode,
+      groupId: data.groupId ?? null,
+      foregroundColor: data.foregroundColor ?? "#000000",
+      backgroundColor: data.backgroundColor ?? "#ffffff",
+      size: data.size ?? 256,
       isActive: true,
       scanCount: 0,
       lastScanned: null,
+      scanHistory: "[]",
       createdAt: new Date().toISOString(),
     };
     this.qrCodes.set(id, qrCode);
@@ -110,8 +115,13 @@ export class MemStorage implements IStorage {
     const qrCode = this.qrCodes.get(id);
     if (!qrCode) return;
     
+    const now = new Date().toISOString();
+    const scanHistory = JSON.parse(qrCode.scanHistory || "[]") as string[];
+    scanHistory.push(now);
+    
     qrCode.scanCount++;
-    qrCode.lastScanned = new Date().toISOString();
+    qrCode.lastScanned = now;
+    qrCode.scanHistory = JSON.stringify(scanHistory);
     this.qrCodes.set(id, qrCode);
   }
 
@@ -120,6 +130,7 @@ export class MemStorage implements IStorage {
     const group: QRCodeGroup = {
       ...data,
       id,
+      description: data.description ?? null,
       createdAt: new Date().toISOString(),
     };
     this.groups.set(id, group);
