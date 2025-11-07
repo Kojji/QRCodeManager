@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { QrCode, LayoutDashboard, LogOut, Sparkles, FolderKanban } from "lucide-react";
+import { QrCode, LayoutDashboard, LogOut, FolderKanban } from "lucide-react";
 
 const navigation = [
   {
@@ -79,22 +79,6 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Upgrade</SidebarGroupLabel>
-          <SidebarGroupContent className="p-4">
-            <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-md p-4 space-y-2 border border-primary/20">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <h3 className="font-medium text-sm">Upgrade to Pro</h3>
-              <p className="text-xs text-muted-foreground">
-                Unlock unlimited QR codes and advanced analytics
-              </p>
-              <Button size="sm" className="w-full" data-testid="button-upgrade">
-                Upgrade now
-              </Button>
-            </div>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
