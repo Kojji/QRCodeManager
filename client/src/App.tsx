@@ -34,13 +34,35 @@ function ProtectedRoute({ component: Component }: { component: () => JSX.Element
   return <Component />;
 }
 
+function AuthRoute({ component: Component }: { component: () => JSX.Element }) {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Redirect to="/dashboard" />;
+  }
+
+  return <Component />;
+}
+
 function Router() {
   const { user } = useAuth();
 
   return (
     <Switch>
-      <Route path="/login" component={LoginPage} />
-      <Route path="/signup" component={SignupPage} />
+      <Route path="/login">
+        {() => <AuthRoute component={LoginPage} />}
+      </Route>
+      <Route path="/signup">
+        {() => <AuthRoute component={SignupPage} />}
+      </Route>
       <Route path="/qr/:shortCode" component={QRRedirectPage} />
       <Route path="/dashboard">
         {() => <ProtectedRoute component={DashboardPage} />}
