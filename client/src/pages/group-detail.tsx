@@ -20,12 +20,12 @@ export default function GroupDetailPage() {
   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
 
   const { data: group, isLoading: groupLoading } = useQuery<QRCodeGroup>({
-    queryKey: ["/api/groups", groupId],
+    queryKey: [`/api/groups/${groupId}`],
     enabled: !!groupId,
   });
 
   const { data: qrCodes = [], isLoading: qrLoading } = useQuery<QRCode[]>({
-    queryKey: ["/api/groups", groupId, "qrcodes"],
+    queryKey: [`/api/groups/${groupId}/qrcodes`],
     enabled: !!groupId,
   });
 
@@ -34,7 +34,7 @@ export default function GroupDetailPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => apiRequest("DELETE", `/api/qrcodes/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/groups", groupId, "qrcodes"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/groups/${groupId}/qrcodes`] });
       queryClient.invalidateQueries({ queryKey: ["/api/qrcodes"] });
       toast({
         title: "Success",
@@ -47,7 +47,7 @@ export default function GroupDetailPage() {
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
       apiRequest("PATCH", `/api/qrcodes/${id}`, { isActive }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/groups", groupId, "qrcodes"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/groups/${groupId}/qrcodes`] });
       queryClient.invalidateQueries({ queryKey: ["/api/qrcodes"] });
     },
   });

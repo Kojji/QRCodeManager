@@ -9,13 +9,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = "demo_user";
       
+      console.log("Creating QR code with body:", JSON.stringify(req.body, null, 2));
       const validatedData = insertQRCodeSchema.parse(req.body);
+      console.log("Validated data:", JSON.stringify(validatedData, null, 2));
       
       const qrCode = await storage.createQRCode({
         ...validatedData,
         userId,
       });
 
+      console.log("Created QR code with groupId:", qrCode.groupId);
       res.json(qrCode);
     } catch (error) {
       console.error("Error creating QR code:", error);
@@ -182,9 +185,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/groups/:id/qrcodes", async (req, res) => {
     try {
+      console.log("Fetching QR codes for group:", req.params.id);
       const qrCodes = await storage.getQRCodesByGroup(req.params.id);
+      console.log(`Found ${qrCodes.length} QR codes for group ${req.params.id}`);
       res.json(qrCodes);
     } catch (error) {
+      console.error("Error fetching QR codes for group:", error);
       res.status(500).json({ error: "Failed to fetch QR codes for group" });
     }
   });
