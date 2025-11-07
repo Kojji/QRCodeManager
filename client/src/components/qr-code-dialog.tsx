@@ -34,6 +34,7 @@ import QRCodeLib from "qrcode";
 const formSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title too long"),
   destinationUrl: z.string().url("Must be a valid URL"),
+  urlParameters: z.string().optional(),
   foregroundColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color format"),
   backgroundColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color format"),
   size: z.number().min(128).max(1024),
@@ -62,6 +63,7 @@ export function QRCodeDialog({ open, onOpenChange, onSave, editingQRCode, isPend
     defaultValues: {
       title: "",
       destinationUrl: "",
+      urlParameters: "",
       foregroundColor: "#000000",
       backgroundColor: "#ffffff",
       size: 256,
@@ -71,9 +73,15 @@ export function QRCodeDialog({ open, onOpenChange, onSave, editingQRCode, isPend
 
   useEffect(() => {
     if (editingQRCode) {
+      // Extract URL parameters from destination URL
+      const url = new URL(editingQRCode.destinationUrl);
+      const params = url.search.substring(1); // Remove the '?'
+      const baseUrl = url.origin + url.pathname;
+      
       form.reset({
         title: editingQRCode.title,
-        destinationUrl: editingQRCode.destinationUrl,
+        destinationUrl: baseUrl,
+        urlParameters: params || "",
         foregroundColor: editingQRCode.foregroundColor,
         backgroundColor: editingQRCode.backgroundColor,
         size: editingQRCode.size,
@@ -83,6 +91,7 @@ export function QRCodeDialog({ open, onOpenChange, onSave, editingQRCode, isPend
       form.reset({
         title: "",
         destinationUrl: "",
+        urlParameters: "",
         foregroundColor: "#000000",
         backgroundColor: "#ffffff",
         size: 256,
@@ -92,12 +101,18 @@ export function QRCodeDialog({ open, onOpenChange, onSave, editingQRCode, isPend
   }, [editingQRCode, form]);
 
   const watchedUrl = form.watch("destinationUrl");
+  const watchedParams = form.watch("urlParameters");
   const watchedFg = form.watch("foregroundColor");
   const watchedBg = form.watch("backgroundColor");
 
   useEffect(() => {
     if (watchedUrl && watchedUrl.startsWith("http")) {
-      QRCodeLib.toDataURL(watchedUrl, {
+      // Combine base URL with parameters for preview
+      const fullUrl = watchedParams 
+        ? `${watchedUrl}?${watchedParams}`
+        : watchedUrl;
+        
+      QRCodeLib.toDataURL(fullUrl, {
         width: 200,
         margin: 2,
         color: {
@@ -106,10 +121,29 @@ export function QRCodeDialog({ open, onOpenChange, onSave, editingQRCode, isPend
         },
       }).then(setPreviewUrl).catch(() => {});
     }
-  }, [watchedUrl, watchedFg, watchedBg]);
+  }, [watchedUrl, watchedParams, watchedFg, watchedBg]);
 
   const handleSubmit = (data: FormValues) => {
-    onSave(data);
+    // Combine base URL with parameters
+    const finalUrl = data.urlParameters 
+      ? `${data.destinationUrl}?${data.urlParameters}`
+      : data.destinationUrl;
+    
+    // Remove urlParameters from the data and use combined URL
+    const { urlParameters, ...submitData } = data;
+    onSave({
+      ...submitData,
+      destinationUrl: finalUrl,
+    });
+  };
+
+  const handleUrlBlur = () => {
+    const currentUrl = form.getValues("destinationUrl");
+    if (currentUrl && !currentUrl.startsWith("http://") && !currentUrl.startsWith("https://")) {
+      form.setValue("destinationUrl", `https://${currentUrl}`, {
+        shouldValidate: true,
+      });
+    }
   };
 
   return (
@@ -155,11 +189,33 @@ export function QRCodeDialog({ open, onOpenChange, onSave, editingQRCode, isPend
                     <FormLabel>Destination URL</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="https://example.com"
+                        placeholder="example.com"
                         {...field}
+                        onBlur={handleUrlBlur}
                         data-testid="input-qr-url"
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="urlParameters"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>URL Parameters (Optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="utm_source=email&utm_campaign=summer"
+                        {...field}
+                        data-testid="input-qr-params"
+                      />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      Add query parameters without the "?" (e.g., param1=value1&param2=value2)
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}
