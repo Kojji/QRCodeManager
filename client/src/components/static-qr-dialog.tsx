@@ -21,6 +21,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Download } from "lucide-react";
 
 const staticQRSchema = z.object({
@@ -47,7 +54,7 @@ export function StaticQRDialog({ open, onOpenChange }: StaticQRDialogProps) {
       url: "",
       fgColor: "#000000",
       bgColor: "#FFFFFF",
-      size: 512,
+      size: 256,
     },
   });
 
@@ -192,21 +199,22 @@ export function StaticQRDialog({ open, onOpenChange }: StaticQRDialogProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Size (px)</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="number"
-                        min={128}
-                        max={1024}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value);
-                          if (!isNaN(value)) {
-                            field.onChange(Math.max(128, Math.min(1024, value)));
-                          }
-                        }}
-                        data-testid="input-static-size"
-                      />
-                    </FormControl>
+                    <Select
+                      value={field.value.toString()}
+                      onValueChange={(value) => field.onChange(parseInt(value))}
+                    >
+                      <FormControl>
+                        <SelectTrigger data-testid="select-static-size">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="128">128</SelectItem>
+                        <SelectItem value="256">256</SelectItem>
+                        <SelectItem value="512">512</SelectItem>
+                        <SelectItem value="1024">1024</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
