@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import {
@@ -14,7 +15,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { QrCode, LayoutDashboard, LogOut, FolderKanban } from "lucide-react";
+import { QrCode, LayoutDashboard, LogOut, FolderKanban, ImagePlus } from "lucide-react";
+import { StaticQRDialog } from "@/components/static-qr-dialog";
 
 const navigation = [
   {
@@ -32,6 +34,7 @@ const navigation = [
 export function AppSidebar() {
   const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
+  const [staticQROpen, setStaticQROpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -81,7 +84,23 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Actions</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => setStaticQROpen(true)} data-testid="button-static-qr">
+                  <ImagePlus className="h-4 w-4" />
+                  <span>Static QR Code</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
+
+      <StaticQRDialog open={staticQROpen} onOpenChange={setStaticQROpen} />
 
       <SidebarFooter className="p-4 border-t border-sidebar-border">
         <div className="flex items-center gap-3">
