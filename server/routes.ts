@@ -15,7 +15,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...validatedData,
         userId,
       });
-
       res.json(qrCode);
     } catch (error) {
       console.error("Error creating QR code:", error);

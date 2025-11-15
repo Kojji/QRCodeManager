@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
-import { type QRCode } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { QRCodeCard } from "@/components/qr-code-card";
@@ -11,20 +10,28 @@ import { Plus, QrCode as QrCodeIcon, BarChart3, Eye, TrendingUp } from "lucide-r
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SaveNewQRCode, RetrieveQRCodes } from "@/routes";
+import { QRCodeInstance } from "@/routes/schema";
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingQRCode, setEditingQRCode] = useState<QRCode | null>(null);
+  const [editingQRCode, setEditingQRCode] = useState<QRCodeInstance | null>(null);
 
-  const { data: qrCodes, isLoading } = useQuery<QRCode[]>({
+  const { data: qrCodes, isLoading } = useQuery<QRCodeInstance[]>({
     queryKey: ["/api/qrcodes"],
+    queryFn: async () => {
+      const QRCodeList : QRCodeInstance[] = await RetrieveQRCodes();
+      console.log('retrievedList', QRCodeList)
+      return QRCodeList;
+    }
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest("POST", "/api/qrcodes", data);
+      return await SaveNewQRCode(data);
+      // return await apiRequest("POST", "/api/qrcodes", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/qrcodes"] });
@@ -103,7 +110,7 @@ export default function DashboardPage() {
     }
   };
 
-  const handleEditQRCode = (qrCode: QRCode) => {
+  const handleEditQRCode = (qrCode: QRCodeInstance) => {
     setEditingQRCode(qrCode);
     setDialogOpen(true);
   };
