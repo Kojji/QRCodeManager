@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { type QRCodeGroup, type QRCode } from "@shared/schema";
+import { QRCodeGroupInstance, QRCodeInstance } from "@/routes/schema";
+import { RetrieveSingleQRCodeGroup, RetrieveQRCodesByGroupId } from "@/routes";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -19,14 +21,24 @@ export default function GroupDetailPage() {
   
   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
 
-  const { data: group, isLoading: groupLoading } = useQuery<QRCodeGroup>({
+  const { data: group, isLoading: groupLoading } = useQuery<QRCodeGroupInstance>({
     queryKey: [`/api/groups/${groupId}`],
     enabled: !!groupId,
+    queryFn: async () => {
+      const QRCodeGroup : QRCodeGroupInstance = await RetrieveSingleQRCodeGroup(groupId);
+      console.log('retrievedList', QRCodeGroup)
+      return QRCodeGroup;
+    }
   });
 
   const { data: qrCodes = [], isLoading: qrLoading } = useQuery<QRCode[]>({
     queryKey: [`/api/groups/${groupId}/qrcodes`],
     enabled: !!groupId,
+    queryFn: async () => {
+      const QRCodeListByGroup : QRCodeInstance[] = await RetrieveQRCodesByGroupId(groupId);
+      console.log('retrieved List Of Group', QRCodeListByGroup)
+      return QRCodeListByGroup;
+    }
   });
 
   const isLoading = groupLoading || qrLoading;

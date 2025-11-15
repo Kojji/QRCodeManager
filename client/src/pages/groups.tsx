@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { type QRCodeGroup } from "@shared/schema";
+import { RetrieveQRCodeGroups, DeleteSingleQRCodeGroup } from "@/routes";
+import { QRCodeGroupInstance } from "@/routes/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -20,14 +21,21 @@ export default function GroupsPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingGroup, setEditingGroup] = useState<QRCodeGroup | undefined>();
+  const [editingGroup, setEditingGroup] = useState<QRCodeGroupInstance | null>(null);
 
-  const { data: groups = [], isLoading } = useQuery<QRCodeGroup[]>({
+  const { data: groups = [], isLoading } = useQuery<QRCodeGroupInstance[]>({
     queryKey: ["/api/groups"],
+    queryFn: async () => {
+      const QRCodeGroupList : QRCodeGroupInstance[] = await RetrieveQRCodeGroups();
+      console.log('retrievedList', QRCodeGroupList)
+      return QRCodeGroupList;
+    }
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("DELETE", `/api/groups/${id}`),
+    mutationFn: async (id: string) => {
+      return await DeleteSingleQRCodeGroup(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       toast({
@@ -45,11 +53,11 @@ export default function GroupsPage() {
   });
 
   const handleCreate = () => {
-    setEditingGroup(undefined);
+    setEditingGroup(null);
     setDialogOpen(true);
   };
 
-  const handleEdit = (group: QRCodeGroup) => {
+  const handleEdit = (group: QRCodeGroupInstance) => {
     setEditingGroup(group);
     setDialogOpen(true);
   };

@@ -83,7 +83,7 @@ export class QRCodeInstance {
   constructor(objectToParse: any, userId: string);
   constructor(objectToParse: any, userId?: string) {
     if(userId) {
-      // new instance from new registry
+      // new instance from new QR Code
       this.id = this.randomUUID(6);
       this.userId = userId;
       this.groupId = objectToParse.groupId ?? null;
@@ -99,7 +99,7 @@ export class QRCodeInstance {
       this.scanHistory = "[]";
       this.createdAt = new Date().toISOString();
     } else {
-      // new instance from existing registry
+      // new instance from existing QR Code
       this.id = objectToParse.id;
       this.userId = objectToParse.userId;
       this.groupId = objectToParse.groupId;
@@ -127,6 +127,47 @@ export class QRCodeInstance {
     return code;
   }
 };
+
+export class QRCodeGroupInstance {
+  id: string;
+  userId: string;
+  name: string;
+  baseUrl: string;
+  description: string | null;
+  createdAt: string;
+
+  constructor(data: any)
+  constructor(data: any, QRGroupId: string)
+  constructor(data: any, QRGroupId?: string) {
+    if(QRGroupId) {
+      // new instance from existing group
+      this.id = QRGroupId;
+      this.userId = data.userId;
+      this.name = data.name;
+      this.baseUrl = data.baseUrl;
+      this.description = data.description;
+      this.createdAt = data.createdAt
+    } else {
+      // new instance from brand new group
+      this.id = this.randomUUID(9);
+      this.userId = data.userId;
+      this.name = data.name;
+      this.baseUrl = data.baseUrl;
+      this.description = data.description ?? null;
+      this.createdAt = new Date().toISOString();
+    }
+  }
+
+  private randomUUID(length: number): string {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    let code = '';
+    for (let i = 0; i < length; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    
+    return code;
+  }
+}
 
 export interface SaveQRCodeInterface {
   id: string,

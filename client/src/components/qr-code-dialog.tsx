@@ -307,22 +307,37 @@ export function QRCodeDialog({ open, onOpenChange, onSave, editingQRCode, isPend
                   )}
                 />
               </div>
-
               <FormField
                 control={form.control}
                 name="size"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Size (pixels)</FormLabel>
+                    <FormLabel>Size (px)</FormLabel>
                     <FormControl>
-                      <Input
+                      <Select
+                        value={field.value.toString()}
+                        onValueChange={(value) => field.onChange(parseInt(value))}
+                      >
+                        <FormControl>
+                          <SelectTrigger data-testid="select-static-size">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="128">128</SelectItem>
+                          <SelectItem value="256">256</SelectItem>
+                          <SelectItem value="512">512</SelectItem>
+                          <SelectItem value="1024">1024</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {/* <Input
                         type="number"
                         min={128}
                         max={1024}
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value))}
                         data-testid="input-qr-size"
-                      />
+                      /> */}
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -8,7 +8,7 @@ import { QRCodeDialog } from "@/components/qr-code-dialog";
 import { StatsCard } from "@/components/stats-card";
 import { Plus, QrCode as QrCodeIcon, BarChart3, Eye, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SaveNewQRCode, RetrieveQRCodes, EditSingleQRCode, EditActivationQRCode, DeleteSingleQRCode } from "@/routes";
 import { QRCodeInstance } from "@/routes/schema";

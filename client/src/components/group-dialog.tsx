@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertQRCodeGroupSchema, type InsertQRCodeGroup, type QRCodeGroup } from "@shared/schema";
+import { QRCodeGroupInstance } from "@/routes/schema";
+import { SaveQRCodeGroup, EditQRCodeGroup } from "@/routes";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -27,14 +29,14 @@ import { Button } from "@/components/ui/button";
 interface GroupDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  group?: QRCodeGroup;
+  group: QRCodeGroupInstance | null;
 }
 
 export function GroupDialog({ open, onOpenChange, group }: GroupDialogProps) {
   const { toast } = useToast();
   const isEditing = !!group;
 
-  const form = useForm<InsertQRCodeGroup>({
+  const form = useForm<Partial<QRCodeGroupInstance>>({
     resolver: zodResolver(insertQRCodeGroupSchema),
     defaultValues: {
       name: "",
@@ -60,8 +62,9 @@ export function GroupDialog({ open, onOpenChange, group }: GroupDialogProps) {
   }, [group, form]);
 
   const createMutation = useMutation({
-    mutationFn: (data: InsertQRCodeGroup) =>
-      apiRequest("POST", "/api/groups", data),
+    mutationFn: async (data: any) => {
+      return await SaveQRCodeGroup(data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       toast({
@@ -81,8 +84,13 @@ export function GroupDialog({ open, onOpenChange, group }: GroupDialogProps) {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: Partial<InsertQRCodeGroup>) =>
-      apiRequest("PATCH", `/api/groups/${group?.id}`, data),
+    mutationFn: async (data: Partial<QRCodeGroupInstance>) => {
+      if(group) {
+        return await EditQRCodeGroup(group.id, data);
+      } else {
+        throw new Error("Id missing for group data update!");
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       queryClient.invalidateQueries({ queryKey: ["/api/groups", group?.id] });
