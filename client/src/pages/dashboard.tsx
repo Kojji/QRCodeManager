@@ -10,7 +10,7 @@ import { Plus, QrCode as QrCodeIcon, BarChart3, Eye, TrendingUp } from "lucide-r
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SaveNewQRCode, RetrieveQRCodes } from "@/routes";
+import { SaveNewQRCode, RetrieveQRCodes, EditSingleQRCode, EditActivationQRCode, DeleteSingleQRCode } from "@/routes";
 import { QRCodeInstance } from "@/routes/schema";
 
 export default function DashboardPage() {
@@ -31,7 +31,6 @@ export default function DashboardPage() {
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
       return await SaveNewQRCode(data);
-      // return await apiRequest("POST", "/api/qrcodes", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/qrcodes"] });
@@ -53,7 +52,7 @@ export default function DashboardPage() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      return await apiRequest("PATCH", `/api/qrcodes/${id}`, data);
+      return await EditSingleQRCode(id, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/qrcodes"] });
@@ -75,7 +74,7 @@ export default function DashboardPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest("DELETE", `/api/qrcodes/${id}`, {});
+      return await DeleteSingleQRCode(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/qrcodes"] });
@@ -95,7 +94,7 @@ export default function DashboardPage() {
 
   const toggleActiveMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      return await apiRequest("PATCH", `/api/qrcodes/${id}`, { isActive });
+      return await EditActivationQRCode(id, { isActive });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/qrcodes"] });
@@ -110,7 +109,7 @@ export default function DashboardPage() {
     }
   };
 
-  const handleEditQRCode = (qrCode: QRCodeInstance) => {
+  const handleEditQRCode = (qrCode: any) => {
     setEditingQRCode(qrCode);
     setDialogOpen(true);
   };

@@ -2,7 +2,7 @@ import { storage } from "./storage";
 import { insertQRCodeSchema, insertQRCodeGroupSchema, SaveQRCodeInterface, type QRCode, QRCodeInstance } from "./schema";
 import { z } from "zod";
 import { firestore } from "@/firebase"
-import { collection, query, doc, setDoc, getDoc, getDocs } from "firebase/firestore"; 
+import { collection, query, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc } from "firebase/firestore"; 
 
 export async function SaveNewQRCode (data: any) {
   return new Promise(async ( res, rej ) => {
@@ -38,6 +38,58 @@ export async function RetrieveQRCodes () {
       res(QRCodesRetrieved);      
     } catch(err) {
       console.log(err)
+      rej();
+    }
+  })
+}
+
+export async function EditSingleQRCode (id: string, data: any) {
+  return new Promise(async ( res, rej ) => {
+    try {
+      console.log("EditSingleQRCode route found");
+      const userId = "demo_user";
+      const docRef = doc(firestore, userId, id);
+      await updateDoc(docRef, {
+        ...data
+      });
+
+      res("successo");
+    } catch (err) {
+      console.log(err);
+      rej();
+    }
+  })
+}
+
+export async function EditActivationQRCode (id: string, data: any) {
+  return new Promise(async ( res, rej ) => {
+    try {
+      console.log("EditActivationQRCode route found");
+      const userId = "demo_user";
+      const docRef = doc(firestore, userId, id);
+      await updateDoc(docRef, {
+        ...data
+      });
+
+      res("successo");
+    } catch (err) {
+      console.log(err);
+      rej();
+    }
+  })
+}
+
+export async function DeleteSingleQRCode (id: string) {
+  return new Promise(async ( res, rej ) => {
+    try {
+      console.log("EditActivationQRCode route found");
+      const userId = "demo_user";
+      const docRef = doc(firestore, userId, id);
+      await deleteDoc(docRef);
+
+      res("successo");
+    } catch (err) {
+      console.log(err);
       rej();
     }
   })
