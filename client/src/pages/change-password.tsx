@@ -8,9 +8,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast";
 import { QrCode, ArrowRight } from "lucide-react";
 
-export default function SignupPage() {
+export default function ChangePasswordPage() {
   const [, setLocation] = useLocation();
-  const { login } = useAuth();
+  const { changePassword } = useAuth();
   const { toast } = useToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -20,19 +20,10 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !email || !password) {
+    if (!email) {
       toast({
         title: "Missing fields",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (password.length < 6) {
-      toast({
-        title: "Password too short",
-        description: "Password must be at least 6 characters",
+        description: "Please fill in the email address",
         variant: "destructive",
       });
       return;
@@ -40,15 +31,15 @@ export default function SignupPage() {
 
     setIsLoading(true);
     try {
-      await login(email, password, name);
+      await changePassword(email);
       toast({
-        title: "Account created!",
-        description: "Welcome to QRFlow",
+        title: "Recovery link sent",
+        description: "Check the email address provided",
       });
-      setLocation("/dashboard");
+      setLocation("/login");
     } catch (error) {
       toast({
-        title: "Signup failed",
+        title: "Request failed",
         description: "Something went wrong. Please try again.",
         variant: "destructive",
       });
@@ -74,25 +65,13 @@ export default function SignupPage() {
 
         <Card>
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-semibold">Create account</CardTitle>
+            <CardTitle className="text-2xl font-semibold">Change Password</CardTitle>
             <CardDescription>
-              Get started with your free account
+              Enter your email address to receive a recovery link.
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="John Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  disabled={isLoading}
-                  data-testid="input-name"
-                />
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -105,21 +84,6 @@ export default function SignupPage() {
                   data-testid="input-email"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                  data-testid="input-password"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Must be at least 6 characters
-                </p>
-              </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
               <Button
@@ -128,26 +92,25 @@ export default function SignupPage() {
                 disabled={isLoading}
                 data-testid="button-signup"
               >
-                {isLoading ? "Creating account..." : "Create account"}
+                {isLoading ? "Processing..." : "Submit"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <div className="text-sm text-center text-muted-foreground">
-                Already have an account?{" "}
+            </CardFooter>
+            <div className="text-sm text-center text-muted-foreground">
                 <button
                   type="button"
                   onClick={() => setLocation("/login")}
                   className="text-primary hover:underline font-medium"
-                  data-testid="link-login"
+                  data-testid="link-change-password"
                 >
-                  Sign in
+                  Return to the login page
                 </button>
               </div>
-            </CardFooter>
           </form>
         </Card>
 
         <p className="text-xs text-center text-muted-foreground px-8">
-          This is a demo with mocked authentication. Any details will work.
+          This is an invite-only application, not open for public sign in.
         </p>
       </div>
     </div>

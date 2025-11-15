@@ -39,7 +39,7 @@ export default function LoginPage() {
     } catch (error) {
       toast({
         title: "Login failed",
-        description: "Something went wrong. Please try again.",
+        description: "Email and/or Password are incorrect.",
         variant: "destructive",
       });
     } finally {
@@ -107,14 +107,13 @@ export default function LoginPage() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
               <div className="text-sm text-center text-muted-foreground">
-                Don't have an account?{" "}
                 <button
                   type="button"
-                  onClick={() => setLocation("/signup")}
+                  onClick={() => setLocation("/change-password")}
                   className="text-primary hover:underline font-medium"
-                  data-testid="link-signup"
+                  data-testid="link-change-password"
                 >
-                  Sign up
+                  Forgot your password?
                 </button>
               </div>
             </CardFooter>
@@ -122,7 +121,7 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-xs text-center text-muted-foreground px-8">
-          This is a demo with mocked authentication. Any email and password will work.
+          This is an invite-only application, not open for public sign in.
         </p>
       </div>
     </div>

@@ -57,11 +57,23 @@ export const insertQRCodeSchema = createInsertSchema(qrCodes).omit({
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+// export type User = typeof users.$inferSelect;
 export type InsertQRCodeGroup = z.infer<typeof insertQRCodeGroupSchema>;
 export type QRCodeGroup = typeof qrCodeGroups.$inferSelect;
 export type InsertQRCode = z.infer<typeof insertQRCodeSchema>;
 export type QRCode = typeof qrCodes.$inferSelect;
+
+export class User {
+  id: string;
+  name: string;
+  email: string;
+
+  constructor(id: string, name: string, email: string) {
+    this.id = id;
+    this.name = name;
+    this.email = email;
+  }
+}
 
 export class QRCodeInstance {
   id: string;

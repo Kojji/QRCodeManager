@@ -1,10 +1,12 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
-import { type User } from "@shared/schema";
+import { LoginWithEmailAndPassword, SendResetPassword } from "@/routes"
+import { User } from "@/routes/schema";
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => void;
+  changePassword: (email: string) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -27,16 +29,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string, name?: string) => {
-    const mockUser: User = {
-      id: `user_${Date.now()}`,
-      email,
-      password: "",
-      name: name || email.split("@")[0],
-    };
-    
-    setUser(mockUser);
-    sessionStorage.setItem("qrflow_user", JSON.stringify(mockUser));
+    return new Promise<void>(async (res, rej) => {
+      try {
+        const loggedUser = await LoginWithEmailAndPassword(email, password);
+        setUser(loggedUser);
+        sessionStorage.setItem("qrflow_user", JSON.stringify(loggedUser));
+        res();
+      } catch(e) {
+        rej();
+      }
+    })
+
   };
+
+  const changePassword = async (email: string) => {
+    return new Promise<void>(async (res, rej) => {
+      try {
+        await SendResetPassword(email);
+        res();
+      } catch(e) {
+        rej();
+      }
+    })
+  }
 
   const logout = () => {
     setUser(null);
@@ -44,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, changePassword, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,8 +1,41 @@
 import { storage } from "./storage";
-import { insertQRCodeSchema, insertQRCodeGroupSchema, SaveQRCodeInterface, type QRCode, QRCodeInstance, QRCodeGroupInstance } from "./schema";
+import { insertQRCodeSchema, insertQRCodeGroupSchema, SaveQRCodeInterface, type QRCode, QRCodeInstance, QRCodeGroupInstance, User } from "./schema";
 import { z } from "zod";
-import { firestore } from "@/firebase"
+import { firestore, auth } from "@/firebase"
 import { collection, query, where, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc } from "firebase/firestore"; 
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+
+export async function LoginWithEmailAndPassword (email: string, password: string) {
+  return new Promise<User>(async ( res, rej ) => {
+    try {
+      console.log("LoginWithEmailAndPassword route found");
+      let userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log(userCredential.user);
+      let loggedUser = new User(
+        userCredential.user.uid,
+        userCredential.user.displayName ?? email.split("@")[0],
+        email
+      );
+      res(loggedUser);
+    } catch (err) {
+      console.log(err);
+      rej();
+    }
+  })
+}
+
+export async function SendResetPassword (email: string) {
+  return new Promise<void>(async ( res, rej ) => {
+    try {
+      console.log("SendResetPassword route found");
+      await sendPasswordResetEmail(auth, email);
+      res();
+    } catch (err) {
+      console.log(err);
+      rej();
+    }
+  })
+}
 
 export async function SaveNewQRCode (data: any) {
   return new Promise(async ( res, rej ) => {

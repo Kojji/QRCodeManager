@@ -9,7 +9,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AppSidebar } from "@/components/app-sidebar";
 import LoginPage from "@/pages/login";
-import SignupPage from "@/pages/signup";
+import ChangePasswordPage from "@/pages/change-password";
 import DashboardPage from "@/pages/dashboard";
 import GroupsPage from "@/pages/groups";
 import GroupDetailPage from "@/pages/group-detail";
@@ -60,8 +60,8 @@ function Router() {
       <Route path="/login">
         {() => <AuthRoute component={LoginPage} />}
       </Route>
-      <Route path="/signup">
-        {() => <AuthRoute component={SignupPage} />}
+      <Route path="/change-password">
+        {() => <AuthRoute component={ChangePasswordPage} />}
       </Route>
       <Route path="/qr/:shortCode" component={QRRedirectPage} />
       <Route path="/dashboard">
