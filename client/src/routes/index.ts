@@ -2,8 +2,9 @@ import { storage } from "./storage";
 import { insertQRCodeSchema, insertQRCodeGroupSchema, SaveQRCodeInterface, type QRCode, QRCodeInstance, QRCodeGroupInstance, User } from "./schema";
 import { z } from "zod";
 import { firestore, auth } from "@/firebase"
-import { collection, query, where, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc } from "firebase/firestore"; 
+import { collection, query, where, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, limit } from "firebase/firestore"; 
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { parse } from "path";
 
 export async function LoginWithEmailAndPassword (email: string, password: string) {
   return new Promise<User>(async ( res, rej ) => {
@@ -237,4 +238,34 @@ export async function DeleteSingleQRCodeGroup (userId: string, id: string) {
       rej();
     }
   })
+}
+
+export async function RetrieveQRCodeRedirect(userId: string, shortCode: string) {
+  return new Promise<string>(async ( res, rej ) => {
+    try {
+      console.log("RetrieveQRCodeRedirect route found");
+      let QRCodeRedirect : string = "";
+      const userQRCodeRef = collection(firestore, userId, "user_data", "QRCodes");
+      const userQRCodeQuery = query(userQRCodeRef, where("shortCode", "==", shortCode), limit(1));
+      const querySnapshot = await getDocs(userQRCodeQuery);
+      querySnapshot.forEach((foundDoc) => {
+        // doc.data() is never undefined for query doc snapshots
+        let parsedDoc = new QRCodeInstance(foundDoc.data());
+        QRCodeRedirect = parsedDoc.destinationUrl;
+        const docRef = doc(firestore, userId, "user_data", "QRCodes", parsedDoc.id);
+        updateDoc(docRef, {
+          scanCount: parsedDoc.scanCount + 1
+        });
+
+      });
+      if(!!QRCodeRedirect) {
+        res(QRCodeRedirect);
+      } else {
+        throw new Error("QR Code data not found")
+      }
+    } catch (err) {
+      console.log(err);
+      rej();
+    }
+  });
 }

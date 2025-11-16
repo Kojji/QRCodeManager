@@ -1,15 +1,22 @@
 import { useEffect } from "react";
 import { useRoute } from "wouter";
 import { Loader2 } from "lucide-react";
+import { RetrieveQRCodeRedirect } from "@/routes";
 
 export default function QRRedirectPage() {
-  const [match, params] = useRoute("/qr/:shortCode");
+  const [match, params] = useRoute("/qr/:userId/:shortCode");
 
   useEffect(() => {
-    if (match && params?.shortCode) {
-      window.location.href = `/api/qr/${params.shortCode}`;
+    if(match && params?.shortCode && params?.userId) {
+      RetrieveQRCodeRedirect(params.userId, params.shortCode).then((redirectURL)=>{
+        window.location.href = redirectURL;
+      }).catch(()=>{
+        throw new Error("QR Code data not found");
+      })
+    } else {
+      throw new Error("Error reading QR Code");
     }
-  }, [match, params]);
+  });
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">

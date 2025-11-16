@@ -28,7 +28,7 @@ export function QRCodeCard({ qrCode, onEdit, onDelete, onToggleActive }: QRCodeC
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
 
-  const redirectUrl = `${window.location.origin}/qr/${qrCode.shortCode}`;
+  const redirectUrl = `${window.location.origin}/qr/${qrCode.userId}/${qrCode.shortCode}`;
 
   useEffect(() => {
     QRCodeLib.toDataURL(redirectUrl, {

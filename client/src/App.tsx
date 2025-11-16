@@ -63,7 +63,7 @@ function Router() {
       <Route path="/change-password">
         {() => <AuthRoute component={ChangePasswordPage} />}
       </Route>
-      <Route path="/qr/:shortCode" component={QRRedirectPage} />
+      <Route path="/qr/:userId/:shortCode" component={QRRedirectPage} />
       <Route path="/dashboard">
         {() => <ProtectedRoute component={DashboardPage} />}
       </Route>
