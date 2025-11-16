@@ -11,7 +11,6 @@ export interface IStorage {
   getQRCodesByUser(userId: string): Promise<QRCode[]>;
   updateQRCode(id: string, updates: Partial<QRCode>): Promise<QRCode | undefined>;
   deleteQRCode(id: string): Promise<boolean>;
-  incrementScanCount(shortCode: string): Promise<void>;
   
   createGroup(group: InsertQRCodeGroup & { userId: string }): Promise<QRCodeGroup>;
   getGroup(id: string): Promise<QRCodeGroup | undefined>;
@@ -76,7 +75,6 @@ export class MemStorage implements IStorage {
       isActive: true,
       scanCount: 0,
       lastScanned: null,
-      scanHistory: "[]",
       createdAt: new Date().toISOString(),
     };
     this.qrCodes.set(id, qrCode);
@@ -116,23 +114,6 @@ export class MemStorage implements IStorage {
     this.shortCodeIndex.delete(qrCode.shortCode);
     this.qrCodes.delete(id);
     return true;
-  }
-
-  async incrementScanCount(shortCode: string): Promise<void> {
-    const id = this.shortCodeIndex.get(shortCode);
-    if (!id) return;
-    
-    const qrCode = this.qrCodes.get(id);
-    if (!qrCode) return;
-    
-    const now = new Date().toISOString();
-    const scanHistory = JSON.parse(qrCode.scanHistory || "[]") as string[];
-    scanHistory.push(now);
-    
-    qrCode.scanCount++;
-    qrCode.lastScanned = now;
-    qrCode.scanHistory = JSON.stringify(scanHistory);
-    this.qrCodes.set(id, qrCode);
   }
 
   async createGroup(data: InsertQRCodeGroup & { userId: string }): Promise<QRCodeGroup> {

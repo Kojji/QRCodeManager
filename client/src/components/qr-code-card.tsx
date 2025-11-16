@@ -14,7 +14,6 @@ import { MoreVertical, Download, Edit2, Trash2, Eye, EyeOff, Copy, ExternalLink,
 import { formatDistanceToNow } from "date-fns";
 import QRCodeLib from "qrcode";
 import { useToast } from "@/hooks/use-toast";
-import { QRAnalyticsDialog } from "@/components/qr-analytics-dialog";
 
 interface QRCodeCardProps {
   qrCode: QRCode;
@@ -26,7 +25,6 @@ interface QRCodeCardProps {
 export function QRCodeCard({ qrCode, onEdit, onDelete, onToggleActive }: QRCodeCardProps) {
   const { toast } = useToast();
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
-  const [analyticsOpen, setAnalyticsOpen] = useState(false);
 
   const redirectUrl = `${window.location.origin}/qr/${qrCode.userId}/${qrCode.shortCode}`;
 
@@ -105,10 +103,6 @@ export function QRCodeCard({ qrCode, onEdit, onDelete, onToggleActive }: QRCodeC
               <Edit2 className="h-4 w-4 mr-2" />
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setAnalyticsOpen(true)} data-testid="button-view-analytics">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Scans
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleDownload} data-testid="button-download-qr">
               <Download className="h-4 w-4 mr-2" />
               Download
@@ -180,11 +174,6 @@ export function QRCodeCard({ qrCode, onEdit, onDelete, onToggleActive }: QRCodeC
         </span>
       </CardFooter>
 
-      <QRAnalyticsDialog
-        open={analyticsOpen}
-        onOpenChange={setAnalyticsOpen}
-        qrCode={qrCode}
-      />
     </Card>
   );
 }

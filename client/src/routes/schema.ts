@@ -32,7 +32,6 @@ export const qrCodes = pgTable("qr_codes", {
   isActive: boolean("is_active").notNull().default(true),
   scanCount: integer("scan_count").notNull().default(0),
   lastScanned: text("last_scanned"),
-  scanHistory: text("scan_history").notNull().default("[]"),
   createdAt: text("created_at").notNull(),
 });
 
@@ -88,7 +87,6 @@ export class QRCodeInstance {
   isActive: boolean;
   scanCount: number;
   lastScanned: string | null;
-  scanHistory: string;
   createdAt: string;
 
   constructor(objectToParse: any);
@@ -108,7 +106,6 @@ export class QRCodeInstance {
       this.isActive = true;
       this.scanCount = 0;
       this.lastScanned = null;
-      this.scanHistory = "[]";
       this.createdAt = new Date().toISOString();
     } else {
       // new instance from existing QR Code
@@ -124,7 +121,6 @@ export class QRCodeInstance {
       this.isActive = objectToParse.isActive;
       this.scanCount = objectToParse.scanCount;
       this.lastScanned = objectToParse.lastScanned;
-      this.scanHistory = objectToParse.scanHistory;
       this.createdAt = objectToParse.createdAt;
     }
   }
@@ -194,6 +190,5 @@ export interface SaveQRCodeInterface {
   isActive: string,
   scanCount: string,
   lastScanned: string,
-  scanHistory: string,
   createdAt: string,
 };

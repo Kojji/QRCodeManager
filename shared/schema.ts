@@ -32,7 +32,6 @@ export const qrCodes = pgTable("qr_codes", {
   isActive: boolean("is_active").notNull().default(true),
   scanCount: integer("scan_count").notNull().default(0),
   lastScanned: text("last_scanned"),
-  scanHistory: text("scan_history").notNull().default("[]"),
   createdAt: text("created_at").notNull(),
 });
 
