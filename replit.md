@@ -14,11 +14,15 @@ QRFlow is a microSaaS application for creating and managing dynamic QR codes wit
 
 ## Current State
 The application is fully functional with:
-- **Mock authentication system** (client-side only, any credentials work for demo purposes)
-  - Auth state stored in sessionStorage
-  - No backend user validation (as requested for MVP demo)
-  - All QR codes stored under single demo user for simplicity
-- In-memory NoSQL-style storage
+- **Client-side only architecture** (no backend server required)
+  - Pure React/Vite application
+  - All data persistence handled through Firebase Firestore
+  - Deployed as a static web application
+- **Firebase Integration**
+  - Firebase Firestore for persistent data storage
+  - Firebase Authentication (mock auth for demo)
+  - Environment variables securely managed via Replit Secrets with VITE_ prefix
+  - Configuration in `client/src/firebase/index.ts`
 - Complete CRUD operations for QR codes and groups
 - **QR Code Groups** for organizing codes with URL variations
   - Group QR codes that share a base URL
@@ -28,10 +32,23 @@ The application is fully functional with:
 - Beautiful, responsive UI with dark mode support
 - Professional dashboard with statistics and management tools
 
-**Note**: This is an MVP demo with intentionally simplified authentication. Multi-user support and persistent auth are documented in "Future Enhancements" section.
+**Note**: This version uses Firebase for persistent storage, replacing the previous in-memory storage approach.
 
-## Recent Changes (November 7, 2025)
-- **Static QR Code Feature** (Latest)
+## Recent Changes
+
+### November 16, 2025
+- **Firebase Integration** (Latest)
+  - Migrated from in-memory storage to Firebase Firestore for persistent data
+  - Removed backend server (Express.js) - now fully client-side application
+  - Updated package.json scripts to run Vite directly on port 5000
+  - Configured Firebase with VITE_ prefixed environment variables for Vite compatibility
+  - Updated `client/src/firebase/index.ts` to use proper Vite env variable format
+  - All QR codes and groups now persist across sessions via Firestore
+  - Installed Firebase SDK (v12.5.0)
+  - Configured Vite to run on port 5000 with `--host 0.0.0.0` for Replit compatibility
+
+### November 7, 2025
+- **Static QR Code Feature**
   - Added "Static QR Code" button to sidebar under Actions section
   - Created dialog to generate QR codes without database storage
   - Live preview with instant updates on any field change
@@ -93,19 +110,17 @@ The application is fully functional with:
 
 ## Project Architecture
 
-### Frontend Stack
+### Tech Stack
 - React with TypeScript
+- Vite for development and build tooling
 - Wouter for routing
 - TanStack Query for data fetching and caching
 - Shadcn UI components with Tailwind CSS
 - qrcode library for QR code generation
 - date-fns for date formatting
-
-### Backend Stack
-- Express.js server
-- In-memory NoSQL-style storage (MemStorage class)
-- Session-based mock authentication
-- RESTful API endpoints
+- Firebase (v12.5.0)
+  - Firestore for persistent data storage
+  - Authentication SDK (configured for future use)
 
 ### Key Features
 1. **Authentication**
