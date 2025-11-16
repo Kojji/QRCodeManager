@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { type QRCodeGroup, type QRCode } from "@shared/schema";
-import { QRCodeGroupInstance, QRCodeInstance } from "@/routes/schema";
-import { RetrieveSingleQRCodeGroup, RetrieveQRCodesByGroupId } from "@/routes";
+import { QRCodeGroupInstance, QRCodeInstance, User } from "@/routes/schema";
+import { RetrieveSingleQRCodeGroup, RetrieveQRCodesByGroupId, DeleteSingleQRCode, EditActivationQRCode } from "@/routes";
+import { useAuth } from "@/lib/auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 
 export default function GroupDetailPage() {
   const [, params] = useRoute("/groups/:id");
+  const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const groupId = params?.id || "";
@@ -25,26 +27,43 @@ export default function GroupDetailPage() {
     queryKey: [`/api/groups/${groupId}`],
     enabled: !!groupId,
     queryFn: async () => {
-      const QRCodeGroup : QRCodeGroupInstance = await RetrieveSingleQRCodeGroup(groupId);
-      console.log('retrievedList', QRCodeGroup)
-      return QRCodeGroup;
+      if(user) {
+        const QRCodeGroup : QRCodeGroupInstance = await RetrieveSingleQRCodeGroup(user.id, groupId);
+        console.log('retrievedListfromGroup', QRCodeGroup)
+        return QRCodeGroup;
+      } else {
+        logout();
+        throw new Error("User data not found");
+      }
     }
   });
 
-  const { data: qrCodes = [], isLoading: qrLoading } = useQuery<QRCode[]>({
+  const { data: qrCodes = [], isLoading: qrLoading } = useQuery<QRCodeInstance[]>({
     queryKey: [`/api/groups/${groupId}/qrcodes`],
     enabled: !!groupId,
     queryFn: async () => {
-      const QRCodeListByGroup : QRCodeInstance[] = await RetrieveQRCodesByGroupId(groupId);
-      console.log('retrieved List Of Group', QRCodeListByGroup)
-      return QRCodeListByGroup;
+      if(user) {
+        const QRCodeListByGroup : QRCodeInstance[] = await RetrieveQRCodesByGroupId(user.id, groupId);
+        console.log('retrieved List Of Group', QRCodeListByGroup)
+        return QRCodeListByGroup;
+      } else {
+        logout();
+        throw new Error("User data not found");
+      }
     }
   });
 
   const isLoading = groupLoading || qrLoading;
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("DELETE", `/api/qrcodes/${id}`),
+    mutationFn: async (id: string) => {
+      if(user) {
+        return await DeleteSingleQRCode(user.id, id);
+      } else {
+        logout();
+        throw new Error("User data not found");
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/groups/${groupId}/qrcodes`] });
       queryClient.invalidateQueries({ queryKey: ["/api/qrcodes"] });
@@ -56,8 +75,14 @@ export default function GroupDetailPage() {
   });
 
   const toggleActiveMutation = useMutation({
-    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
-      apiRequest("PATCH", `/api/qrcodes/${id}`, { isActive }),
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      if(user) {
+        return await EditActivationQRCode(user.id, id, { isActive });
+      } else {
+        logout();
+        throw new Error("User data not found");
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/groups/${groupId}/qrcodes`] });
       queryClient.invalidateQueries({ queryKey: ["/api/qrcodes"] });

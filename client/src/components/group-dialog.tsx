@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuth } from "@/lib/auth";
 import { insertQRCodeGroupSchema, type InsertQRCodeGroup, type QRCodeGroup } from "@shared/schema";
-import { QRCodeGroupInstance } from "@/routes/schema";
+import { QRCodeGroupInstance, User } from "@/routes/schema";
 import { SaveQRCodeGroup, EditQRCodeGroup } from "@/routes";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -33,6 +34,7 @@ interface GroupDialogProps {
 }
 
 export function GroupDialog({ open, onOpenChange, group }: GroupDialogProps) {
+  const { user, logout } = useAuth();
   const { toast } = useToast();
   const isEditing = !!group;
 
@@ -63,7 +65,12 @@ export function GroupDialog({ open, onOpenChange, group }: GroupDialogProps) {
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await SaveQRCodeGroup(data);
+      if(user) {
+        return await SaveQRCodeGroup(user.id, data);
+      } else {
+        logout();
+        throw new Error("User data not found");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
@@ -85,10 +92,13 @@ export function GroupDialog({ open, onOpenChange, group }: GroupDialogProps) {
 
   const updateMutation = useMutation({
     mutationFn: async (data: Partial<QRCodeGroupInstance>) => {
-      if(group) {
-        return await EditQRCodeGroup(group.id, data);
-      } else {
+      if(group && user) {
+        return await EditQRCodeGroup(user.id, group.id, data);
+      } else if (!group) {
         throw new Error("Id missing for group data update!");
+      } else {
+        logout();
+        throw new Error("User data not found");
       }
     },
     onSuccess: () => {
@@ -109,7 +119,7 @@ export function GroupDialog({ open, onOpenChange, group }: GroupDialogProps) {
     },
   });
 
-  const onSubmit = (data: InsertQRCodeGroup) => {
+  const onSubmit = (data: Partial<QRCodeGroupInstance>) => {
     if (isEditing) {
       updateMutation.mutate(data);
     } else {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -11,10 +11,10 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SaveNewQRCode, RetrieveQRCodes, EditSingleQRCode, EditActivationQRCode, DeleteSingleQRCode } from "@/routes";
-import { QRCodeInstance } from "@/routes/schema";
+import { QRCodeInstance, User } from "@/routes/schema";
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingQRCode, setEditingQRCode] = useState<QRCodeInstance | null>(null);
@@ -22,15 +22,25 @@ export default function DashboardPage() {
   const { data: qrCodes, isLoading } = useQuery<QRCodeInstance[]>({
     queryKey: ["/api/qrcodes"],
     queryFn: async () => {
-      const QRCodeList : QRCodeInstance[] = await RetrieveQRCodes();
-      console.log('retrievedList', QRCodeList)
-      return QRCodeList;
+      if(user) {
+        const QRCodeList : QRCodeInstance[] = await RetrieveQRCodes(user.id);
+        console.log('retrievedList', QRCodeList);
+        return QRCodeList;
+      } else {
+        logout();
+        throw new Error("User data not found");
+      }
     }
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await SaveNewQRCode(data);
+      if(user) {
+        return await SaveNewQRCode(user.id, data);
+      } else {
+        logout();
+        throw new Error("User data not found");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/qrcodes"] });
@@ -52,7 +62,12 @@ export default function DashboardPage() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      return await EditSingleQRCode(id, data);
+      if(user) {
+        return await EditSingleQRCode(user.id, id, data);
+      } else {
+        logout();
+        throw new Error("User data not found");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/qrcodes"] });
@@ -74,7 +89,12 @@ export default function DashboardPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await DeleteSingleQRCode(id);
+      if(user) {
+        return await DeleteSingleQRCode(user.id, id);
+      } else {
+        logout();
+        throw new Error("User data not found");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/qrcodes"] });
@@ -94,7 +114,12 @@ export default function DashboardPage() {
 
   const toggleActiveMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      return await EditActivationQRCode(id, { isActive });
+      if(user) {
+        return await EditActivationQRCode(user.id, id, { isActive });
+      } else {
+        logout();
+        throw new Error("User data not found");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/qrcodes"] });

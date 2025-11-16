@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { RetrieveQRCodeGroups, DeleteSingleQRCodeGroup } from "@/routes";
-import { QRCodeGroupInstance } from "@/routes/schema";
+import { QRCodeGroupInstance, User } from "@/routes/schema";
+import { useAuth } from "@/lib/auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -18,23 +19,34 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 export default function GroupsPage() {
+  const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<QRCodeGroupInstance | null>(null);
-
+  
   const { data: groups = [], isLoading } = useQuery<QRCodeGroupInstance[]>({
     queryKey: ["/api/groups"],
     queryFn: async () => {
-      const QRCodeGroupList : QRCodeGroupInstance[] = await RetrieveQRCodeGroups();
-      console.log('retrievedList', QRCodeGroupList)
-      return QRCodeGroupList;
+      if(user) {
+        const QRCodeGroupList : QRCodeGroupInstance[] = await RetrieveQRCodeGroups(user.id);
+        console.log('retrievedList', QRCodeGroupList)
+        return QRCodeGroupList;
+      } else {
+        logout();
+        throw new Error("User data not found");
+      }
     }
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await DeleteSingleQRCodeGroup(id);
+      if(user) {
+        return await DeleteSingleQRCodeGroup(user.id, id);
+      } else {
+        logout();
+        throw new Error("User data not found");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });

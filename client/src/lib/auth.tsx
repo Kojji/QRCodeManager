@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { LoginWithEmailAndPassword, SendResetPassword } from "@/routes"
 import { User } from "@/routes/schema";
+import { queryClient } from "./queryClient";
 
 interface AuthContextType {
   user: User | null;
@@ -56,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setUser(null);
     sessionStorage.removeItem("qrflow_user");
+    queryClient.clear();
   };
 
   return (

@@ -37,17 +37,15 @@ export async function SendResetPassword (email: string) {
   })
 }
 
-export async function SaveNewQRCode (data: any) {
+export async function SaveNewQRCode (userId: string, data: any) {
   return new Promise(async ( res, rej ) => {
     try {
       console.log("SaveNewQRCode route found");
-      const userId = "demo_user";
       const validatedData = new QRCodeInstance(data, userId);
     
       await setDoc(doc(firestore, userId, "user_data", "QRCodes", validatedData.id), {
         ...validatedData
       });
-
       res("successo");
     } catch (err) {
       console.log(err);
@@ -56,12 +54,12 @@ export async function SaveNewQRCode (data: any) {
   })
 }
 
-export async function RetrieveQRCodes () {
+export async function RetrieveQRCodes (userId: string) {
   return new Promise<QRCodeInstance[]>(async ( res, rej ) => {
     try {
       console.log("RetrieveQRCodes route found");
       let QRCodesRetrieved : QRCodeInstance[] = [];
-      const userQRCodesQuery = query(collection(firestore, "demo_user", "user_data", "QRCodes"));
+      const userQRCodesQuery = query(collection(firestore, userId, "user_data", "QRCodes"));
       const querySnapshot = await getDocs(userQRCodesQuery);
       querySnapshot.forEach((doc) => {
         // doc.data() is never undefined for query doc snapshots
@@ -76,12 +74,12 @@ export async function RetrieveQRCodes () {
   })
 }
 
-export async function RetrieveQRCodesByGroupId (groupId: string) {
+export async function RetrieveQRCodesByGroupId (userId: string, groupId: string) {
   return new Promise<QRCodeInstance[]>(async ( res, rej ) => {
     try {
       console.log("RetrieveQRCodes route found");
       let QRCodesRetrieved : QRCodeInstance[] = [];
-      const userQRCodesRef = collection(firestore, "demo_user", "user_data", "QRCodes");
+      const userQRCodesRef = collection(firestore, userId, "user_data", "QRCodes");
       const userQRCodesQuery = query(userQRCodesRef, where("groupId", "==", groupId));
       const querySnapshot = await getDocs(userQRCodesQuery);
       querySnapshot.forEach((doc) => {
@@ -97,11 +95,10 @@ export async function RetrieveQRCodesByGroupId (groupId: string) {
   })
 }
 
-export async function EditSingleQRCode (id: string, data: any) {
+export async function EditSingleQRCode (userId: string, id: string, data: any) {
   return new Promise(async ( res, rej ) => {
     try {
       console.log("EditSingleQRCode route found");
-      const userId = "demo_user";
       const docRef = doc(firestore, userId, "user_data", "QRCodes", id);
       await updateDoc(docRef, {
         ...data
@@ -115,11 +112,10 @@ export async function EditSingleQRCode (id: string, data: any) {
   })
 }
 
-export async function EditActivationQRCode (id: string, data: any) {
+export async function EditActivationQRCode (userId: string, id: string, data: any) {
   return new Promise(async ( res, rej ) => {
     try {
       console.log("EditActivationQRCode route found");
-      const userId = "demo_user";
       const docRef = doc(firestore, userId, "user_data", "QRCodes", id);
       await updateDoc(docRef, {
         ...data
@@ -133,11 +129,10 @@ export async function EditActivationQRCode (id: string, data: any) {
   })
 }
 
-export async function DeleteSingleQRCode (id: string) {
+export async function DeleteSingleQRCode (userId: string, id: string) {
   return new Promise(async ( res, rej ) => {
     try {
       console.log("DeleteSingleQRCode route found");
-      const userId = "demo_user";
       const docRef = doc(firestore, userId, "user_data", "QRCodes", id);
       await deleteDoc(docRef);
 
@@ -149,11 +144,10 @@ export async function DeleteSingleQRCode (id: string) {
   })
 }
 
-export async function SaveQRCodeGroup (data: any) {
-  return new Promise(async ( res, rej ) => {
+export async function SaveQRCodeGroup (userId: string, data: any) {
+  return new Promise<void>(async ( res, rej ) => {
     try {
       console.log("SaveQRCodeGroup route found");
-      const userId = "demo_user";
       const validatedData = new QRCodeGroupInstance({
         ...data,
         userId
@@ -164,7 +158,7 @@ export async function SaveQRCodeGroup (data: any) {
         ...validatedData
       });
 
-      res("successo");
+      res();
     } catch (err) {
       console.log(err);
       rej();
@@ -172,12 +166,12 @@ export async function SaveQRCodeGroup (data: any) {
   })
 }
 
-export async function RetrieveQRCodeGroups () {
+export async function RetrieveQRCodeGroups (userId: string) {
   return new Promise<QRCodeGroupInstance[]>(async ( res, rej ) => {
     try {
       console.log("RetrieveQRCodeGroups route found");
       let QRCodeGroupsRetrieved : QRCodeGroupInstance[] = [];
-      const userQRCodeGroupsQuery = query(collection(firestore, "demo_user", "user_data", "QRCodeGroups"));
+      const userQRCodeGroupsQuery = query(collection(firestore, userId, "user_data", "QRCodeGroups"));
       const querySnapshot = await getDocs(userQRCodeGroupsQuery);
       querySnapshot.forEach((doc) => {
         // doc.data() is never undefined for query doc snapshots
@@ -192,11 +186,11 @@ export async function RetrieveQRCodeGroups () {
   })
 }
 
-export async function RetrieveSingleQRCodeGroup (id: string) {
+export async function RetrieveSingleQRCodeGroup (userId: string, id: string) {
   return new Promise<QRCodeGroupInstance>(async ( res, rej ) => {
     try {
       console.log("RetrieveSingleQRCodeGroup");
-      const QRCodeGroupDocRef = doc(firestore, "demo_user", "user_data", "QRCodeGroups", id);
+      const QRCodeGroupDocRef = doc(firestore, userId, "user_data", "QRCodeGroups", id);
       const docSnap = await getDoc(QRCodeGroupDocRef);
 
       if (docSnap.exists()) {
@@ -213,11 +207,10 @@ export async function RetrieveSingleQRCodeGroup (id: string) {
   })
 }
 
-export async function EditQRCodeGroup (id: string, data: Partial<QRCodeGroupInstance>) {
+export async function EditQRCodeGroup (userId: string, id: string, data: Partial<QRCodeGroupInstance>) {
   return new Promise(async ( res, rej ) => {
     try {
       console.log("EditQRCodeGroup route found");
-      const userId = "demo_user";
       const docRef = doc(firestore, userId, "user_data", "QRCodeGroups", id);
       await updateDoc(docRef, {
         ...data
@@ -231,11 +224,10 @@ export async function EditQRCodeGroup (id: string, data: Partial<QRCodeGroupInst
   })
 }
 
-export async function DeleteSingleQRCodeGroup (id: string) {
+export async function DeleteSingleQRCodeGroup (userId: string, id: string) {
   return new Promise(async ( res, rej ) => {
     try {
       console.log("DeleteSingleQRCodeGroup route found");
-      const userId = "demo_user";
       const docRef = doc(firestore, userId, "user_data", "QRCodeGroups", id);
       await deleteDoc(docRef);
 
