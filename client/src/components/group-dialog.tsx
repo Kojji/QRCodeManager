@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useAuth } from "@/lib/auth";
-import { insertQRCodeGroupSchema, type InsertQRCodeGroup, type QRCodeGroup } from "@shared/schema";
-import { QRCodeGroupInstance, User } from "@/routes/schema";
+import { QRCodeGroupInstance } from "@/routes/schema";
 import { SaveQRCodeGroup, EditQRCodeGroup } from "@/routes";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -33,13 +33,20 @@ interface GroupDialogProps {
   group: QRCodeGroupInstance | null;
 }
 
+const formSchema = z.object({
+  name: z.string().min(1, "Name is required").max(80, "Title too long"),
+  baseUrl: z.string().optional(),
+  description: z.string().max(250, "Description too long").default("")
+});
+
+
 export function GroupDialog({ open, onOpenChange, group }: GroupDialogProps) {
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const isEditing = !!group;
 
   const form = useForm<Partial<QRCodeGroupInstance>>({
-    resolver: zodResolver(insertQRCodeGroupSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       baseUrl: "",

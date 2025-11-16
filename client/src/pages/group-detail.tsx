@@ -1,18 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
-import { type QRCodeGroup, type QRCode } from "@shared/schema";
-import { QRCodeGroupInstance, QRCodeInstance, User } from "@/routes/schema";
+import { QRCodeGroupInstance, QRCodeInstance } from "@/routes/schema";
 import { RetrieveSingleQRCodeGroup, RetrieveQRCodesByGroupId, DeleteSingleQRCode, EditActivationQRCode } from "@/routes";
 import { useAuth } from "@/lib/auth";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { QRCodeCard } from "@/components/qr-code-card";
 import { GroupDialog } from "@/components/group-dialog";
 import { ArrowLeft, Plus, ExternalLink, Pencil } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 export default function GroupDetailPage() {
   const [, params] = useRoute("/groups/:id");
@@ -101,7 +99,7 @@ export default function GroupDetailPage() {
     setGroupDialogOpen(true);
   };
 
-  const handleEditQR = (qr: QRCode) => {
+  const handleEditQR = (qr: QRCodeInstance) => {
     setLocation("/dashboard");
   };
 
@@ -114,33 +112,6 @@ export default function GroupDetailPage() {
   const handleToggleActive = (id: string, isActive: boolean) => {
     toggleActiveMutation.mutate({ id, isActive });
   };
-
-  const getUrlVariation = (url: string, baseUrl: string) => {
-    if (!url.startsWith(baseUrl)) {
-      return { type: "different", variation: url };
-    }
-
-    const remaining = url.substring(baseUrl.length);
-    
-    if (remaining.includes("?")) {
-      const [path, params] = remaining.split("?");
-      return {
-        type: "params",
-        path: path || "/",
-        params: params,
-      };
-    }
-
-    return {
-      type: "path",
-      variation: remaining || "/",
-    };
-  };
-
-  const groupedQRCodes = qrCodes.map((qr) => ({
-    ...qr,
-    urlInfo: group ? getUrlVariation(qr.destinationUrl, group.baseUrl) : null,
-  }));
 
   const totalScans = qrCodes.reduce((sum, qr) => sum + qr.scanCount, 0);
   const activeCount = qrCodes.filter((qr) => qr.isActive).length;
@@ -182,7 +153,12 @@ export default function GroupDetailPage() {
               <h1 className="text-3xl font-bold tracking-tight">{group.name}</h1>
               <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                 <ExternalLink className="h-3 w-3" />
-                <span>{group.baseUrl}</span>
+                {group.baseUrl != "" && (
+                  <span>{group.baseUrl}</span>
+                )}
+                {group.baseUrl == "" && (
+                  <span>base URL not provided</span>
+                )}
               </div>
               {group.description && (
                 <p className="text-muted-foreground mt-2">{group.description}</p>
@@ -246,7 +222,7 @@ export default function GroupDetailPage() {
             </Card>
           </div>
 
-          {groupedQRCodes.length === 0 ? (
+          {qrCodes.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Plus className="h-12 w-12 text-muted-foreground mb-4" />
@@ -265,7 +241,7 @@ export default function GroupDetailPage() {
             <div className="space-y-4">
               <h2 className="text-xl font-semibold">QR Codes in this Group</h2>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {groupedQRCodes.map((qr) => (
+                {qrCodes.map((qr) => (
                   <div key={qr.id} className="space-y-2">
                     <QRCodeCard
                       qrCode={qr}
@@ -273,34 +249,6 @@ export default function GroupDetailPage() {
                       onDelete={handleDeleteQR}
                       onToggleActive={handleToggleActive}
                     />
-                    {qr.urlInfo && (
-                      <div className="px-2 py-1 bg-muted rounded-md text-xs">
-                        {qr.urlInfo.type === "path" && (
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs">Path</Badge>
-                            <code className="text-muted-foreground">{qr.urlInfo.variation}</code>
-                          </div>
-                        )}
-                        {qr.urlInfo.type === "params" && (
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="text-xs">Path</Badge>
-                              <code className="text-muted-foreground">{qr.urlInfo.path}</code>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="text-xs">Params</Badge>
-                              <code className="text-muted-foreground break-all">{qr.urlInfo.params}</code>
-                            </div>
-                          </div>
-                        )}
-                        {qr.urlInfo.type === "different" && (
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs">Different URL</Badge>
-                            <code className="text-muted-foreground truncate">{qr.urlInfo.variation}</code>
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>

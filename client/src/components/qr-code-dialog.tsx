@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { type QRCode, type QRCodeGroup } from "@shared/schema";
+import { QRCodeInstance, QRCodeGroupInstance } from "@/routes/schema";
 import QRCodeLib from "qrcode";
 
 const formSchema = z.object({
@@ -47,14 +47,14 @@ interface QRCodeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (data: FormValues) => void;
-  editingQRCode?: QRCode | null;
+  editingQRCode?: QRCodeInstance | null;
   isPending: boolean;
 }
 
 export function QRCodeDialog({ open, onOpenChange, onSave, editingQRCode, isPending }: QRCodeDialogProps) {
   const [previewUrl, setPreviewUrl] = useState<string>("");
 
-  const { data: groups = [] } = useQuery<QRCodeGroup[]>({
+  const { data: groups = [] } = useQuery<QRCodeGroupInstance[]>({
     queryKey: ["/api/groups"],
   });
 

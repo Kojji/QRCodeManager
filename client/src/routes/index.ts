@@ -1,10 +1,7 @@
-import { storage } from "./storage";
-import { insertQRCodeSchema, insertQRCodeGroupSchema, SaveQRCodeInterface, type QRCode, QRCodeInstance, QRCodeGroupInstance, User } from "./schema";
-import { z } from "zod";
+import { QRCodeInstance, QRCodeGroupInstance, User } from "./schema";
 import { firestore, auth } from "@/firebase"
 import { collection, query, where, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, limit } from "firebase/firestore"; 
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { parse } from "path";
 
 export async function LoginWithEmailAndPassword (email: string, password: string) {
   return new Promise<User>(async ( res, rej ) => {

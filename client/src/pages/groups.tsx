@@ -143,7 +143,12 @@ export default function GroupsPage() {
                         </CardTitle>
                         <CardDescription className="mt-1 flex items-center gap-1 text-xs truncate">
                           <ExternalLink className="h-3 w-3 flex-shrink-0" />
-                          <span className="truncate">{group.baseUrl}</span>
+                          {group.baseUrl != "" && (
+                            <span className="truncate">{group.baseUrl}</span>
+                          )}
+                          {group.baseUrl == "" && (
+                            <span className="truncate">base URL not provided</span>
+                          )}
                         </CardDescription>
                       </div>
                       <DropdownMenu>

@@ -9,15 +9,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { type QRCode } from "@shared/schema";
+import { QRCodeInstance } from "@/routes/schema";
 import { MoreVertical, Download, Edit2, Trash2, Eye, EyeOff, Copy, ExternalLink, BarChart3 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import QRCodeLib from "qrcode";
 import { useToast } from "@/hooks/use-toast";
 
 interface QRCodeCardProps {
-  qrCode: QRCode;
-  onEdit: (qrCode: QRCode) => void;
+  qrCode: QRCodeInstance;
+  onEdit: (qrCode: QRCodeInstance) => void;
   onDelete: (id: string) => void;
   onToggleActive: (id: string, isActive: boolean) => void;
 }
