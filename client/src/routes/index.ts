@@ -191,6 +191,25 @@ export async function RetrieveQRCodeGroups (userId: string) {
   })
 }
 
+export async function RetrieveAllQRCodeGroups (userId: string) {
+  return new Promise<QRCodeGroupInstance[]>(async ( res, rej ) => {
+    try {
+      let QRCodeGroupsRetrieved : QRCodeGroupInstance[] = [];
+      const userQRCodeGroupsQuery = query(collection(firestore, "users", userId, "QRCodeGroups"), orderBy("createdAt", "desc"));
+      const querySnapshot = await getDocs(userQRCodeGroupsQuery);
+      querySnapshot.forEach((doc) => {
+        // doc.data() is never undefined for query doc snapshots
+        let parsedDoc = new QRCodeGroupInstance(doc.data(), doc.id);
+        QRCodeGroupsRetrieved.push(parsedDoc);
+      });
+      res(QRCodeGroupsRetrieved);      
+    } catch(err) {
+      console.log(err)
+      rej();
+    }
+  })
+}
+
 export async function LoadMoreQRCodeGroupsPagination (userId: string, lastQRCodeGroup: QRCodeGroupInstance) {
   return new Promise<QRCodeGroupInstance[]>(async ( res, rej ) => {
     try {

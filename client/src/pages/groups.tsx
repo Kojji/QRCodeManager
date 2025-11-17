@@ -50,6 +50,7 @@ export default function GroupsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/groups/all"] });
       toast({
         title: "Success",
         description: "Group deleted successfully",

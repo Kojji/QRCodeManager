@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { QRCodeInstance, User } from "@/routes/schema";
 export default function DashboardPage() {
   const { user, logout } = useAuth();
   const { toast } = useToast();
+  const [groupQueryToRefresh, setGroupQueryToRefresh] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingQRCode, setEditingQRCode] = useState<QRCodeInstance | null>(null);
@@ -34,8 +35,9 @@ export default function DashboardPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: Partial<QRCodeInstance>) => {
       if(user) {
+        if(data.groupId) setGroupQueryToRefresh(data.groupId);
         return await SaveNewQRCode(user.id, data);
       } else {
         logout();
@@ -44,6 +46,9 @@ export default function DashboardPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/qrcodes"] });
+      if(groupQueryToRefresh) {
+        queryClient.invalidateQueries({ queryKey: [`/api/groups/${groupQueryToRefresh}/qrcodes`] });
+      }
       setDialogOpen(false);
       setEditingQRCode(null);
       toast({
@@ -88,9 +93,10 @@ export default function DashboardPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async (data: QRCodeInstance) => {
       if(user) {
-        return await DeleteSingleQRCode(user.id, id);
+        if(data.groupId) setGroupQueryToRefresh(data.groupId);
+        return await DeleteSingleQRCode(user.id, data.id);
       } else {
         logout();
         throw new Error("User data not found");
@@ -98,6 +104,9 @@ export default function DashboardPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/qrcodes"] });
+      if(groupQueryToRefresh) {
+        queryClient.invalidateQueries({ queryKey: [`/api/groups/${groupQueryToRefresh}/qrcodes`] });
+      }
       toast({
         title: "QR code deleted",
         description: "Your QR code has been deleted successfully",
@@ -248,7 +257,7 @@ export default function DashboardPage() {
                   key={qrCode.id}
                   qrCode={qrCode}
                   onEdit={handleEditQRCode}
-                  onDelete={(id) => deleteMutation.mutate(id)}
+                  onDelete={() => deleteMutation.mutate(qrCode)}
                   onToggleActive={(id, isActive) =>
                     toggleActiveMutation.mutate({ id, isActive })
                   }

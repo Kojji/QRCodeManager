@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { QRCodeGroupInstance, QRCodeInstance } from "@/routes/schema";
-import { RetrieveSingleQRCodeGroup, RetrieveQRCodesByGroupId, DeleteSingleQRCode, EditActivationQRCode } from "@/routes";
+import { RetrieveSingleQRCodeGroup, RetrieveQRCodesByGroupId, DeleteSingleQRCode, EditActivationQRCode, EditSingleQRCode, SaveNewQRCode } from "@/routes";
 import { useAuth } from "@/lib/auth";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -10,15 +10,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { QRCodeCard } from "@/components/qr-code-card";
 import { GroupDialog } from "@/components/group-dialog";
+import { QRCodeDialog } from "@/components/qr-code-dialog";
 import { ArrowLeft, Plus, ExternalLink, Pencil } from "lucide-react";
 
 export default function GroupDetailPage() {
   const [, params] = useRoute("/groups/:id");
   const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
   const groupId = params?.id || "";
-  
+  const [editingQRCode, setEditingQRCode] = useState<QRCodeInstance | null>(null);
   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
 
   const { data: group, isLoading: groupLoading } = useQuery<QRCodeGroupInstance>({
@@ -90,15 +92,17 @@ export default function GroupDetailPage() {
   };
 
   const handleCreateQR = () => {
-    setLocation("/dashboard");
+    setEditingQRCode(null);
+    setDialogOpen(true);
   };
 
   const handleEditGroup = () => {
     setGroupDialogOpen(true);
   };
 
-  const handleEditQR = (qr: QRCodeInstance) => {
-    setLocation("/dashboard");
+  const handleEditQR = (qrCode: QRCodeInstance) => {
+    setEditingQRCode(qrCode);
+    setDialogOpen(true);
   };
 
   const handleDeleteQR = (id: string) => {
@@ -110,6 +114,70 @@ export default function GroupDetailPage() {
   const handleToggleActive = (id: string, isActive: boolean) => {
     toggleActiveMutation.mutate({ id, isActive });
   };
+
+  const handleSaveQRCode = (data: any) => {
+    if (editingQRCode) {
+      updateMutation.mutate({ id: editingQRCode.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  const createMutation = useMutation({
+    mutationFn: async (data: Partial<QRCodeInstance>) => {
+      if(user) {
+        return await SaveNewQRCode(user.id, data);
+      } else {
+        logout();
+        throw new Error("User data not found");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/qrcodes"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/groups/${groupId}/qrcodes`] });
+      setDialogOpen(false);
+      setEditingQRCode(null);
+      toast({
+        title: "QR code created",
+        description: "Your QR code has been created successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to create QR code",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+      mutationFn: async ({ id, data }: { id: string; data: any }) => {
+        if(user) {
+          return await EditSingleQRCode(user.id, id, data);
+        } else {
+          logout();
+          throw new Error("User data not found");
+        }
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/qrcodes"] });
+        queryClient.invalidateQueries({ queryKey: [`/api/groups/${groupId}/qrcodes`] });
+        setDialogOpen(false);
+        setEditingQRCode(null);
+        toast({
+          title: "QR code updated",
+          description: "Your QR code has been updated successfully",
+        });
+      },
+      onError: () => {
+        toast({
+          title: "Failed to update QR code",
+          description: "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+      },
+    });
 
   const totalScans = qrCodes.reduce((sum, qr) => sum + qr.scanCount, 0);
   const activeCount = qrCodes.filter((qr) => qr.isActive).length;
@@ -259,6 +327,13 @@ export default function GroupDetailPage() {
         open={groupDialogOpen}
         onOpenChange={setGroupDialogOpen}
         group={group}
+      />
+      <QRCodeDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onSave={handleSaveQRCode}
+        editingQRCode={editingQRCode}
+        isPending={createMutation.isPending || updateMutation.isPending}
       />
     </>
   );

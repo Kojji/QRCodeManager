@@ -29,7 +29,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { QRCodeInstance, QRCodeGroupInstance } from "@/routes/schema";
+import { RetrieveAllQRCodeGroups } from "@/routes";
 import QRCodeLib from "qrcode";
+import { useAuth } from "@/lib/auth";
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title too long"),
@@ -52,10 +54,20 @@ interface QRCodeDialogProps {
 }
 
 export function QRCodeDialog({ open, onOpenChange, onSave, editingQRCode, isPending }: QRCodeDialogProps) {
+  const { user, logout } = useAuth();
   const [previewUrl, setPreviewUrl] = useState<string>("");
 
   const { data: groups = [] } = useQuery<QRCodeGroupInstance[]>({
-    queryKey: ["/api/groups"],
+    queryKey: ["/api/groups/all"],
+    queryFn: async () => {
+      if(user) {
+        const QRCodeGroupList : QRCodeGroupInstance[] = await RetrieveAllQRCodeGroups(user.id);
+        return QRCodeGroupList;
+      } else {
+        logout();
+        throw new Error("User data not found");
+      }
+    }
   });
 
   const form = useForm<FormValues>({

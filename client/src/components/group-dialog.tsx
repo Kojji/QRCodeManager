@@ -81,6 +81,7 @@ export function GroupDialog({ open, onOpenChange, group }: GroupDialogProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/groups/all"] });
       toast({
         title: "Success",
         description: "Group created successfully",
@@ -111,10 +112,12 @@ export function GroupDialog({ open, onOpenChange, group }: GroupDialogProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       queryClient.invalidateQueries({ queryKey: ["/api/groups", group?.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/groups/all"] });
       toast({
         title: "Success",
         description: "Group updated successfully",
       });
+      form.reset();
       onOpenChange(false);
     },
     onError: () => {
