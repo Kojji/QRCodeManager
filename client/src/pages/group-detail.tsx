@@ -27,7 +27,6 @@ export default function GroupDetailPage() {
     queryFn: async () => {
       if(user) {
         const QRCodeGroup : QRCodeGroupInstance = await RetrieveSingleQRCodeGroup(user.id, groupId);
-        console.log('retrievedListfromGroup', QRCodeGroup)
         return QRCodeGroup;
       } else {
         logout();
@@ -42,7 +41,6 @@ export default function GroupDetailPage() {
     queryFn: async () => {
       if(user) {
         const QRCodeListByGroup : QRCodeInstance[] = await RetrieveQRCodesByGroupId(user.id, groupId);
-        console.log('retrieved List Of Group', QRCodeListByGroup)
         return QRCodeListByGroup;
       } else {
         logout();

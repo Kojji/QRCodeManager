@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { RetrieveQRCodeGroups, DeleteSingleQRCodeGroup } from "@/routes";
+import { RetrieveQRCodeGroups, DeleteSingleQRCodeGroup, LoadMoreQRCodeGroupsPagination } from "@/routes";
 import { QRCodeGroupInstance, User } from "@/routes/schema";
 import { useAuth } from "@/lib/auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { GroupDialog } from "@/components/group-dialog";
-import { Plus, FolderKanban, ExternalLink, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Plus, FolderKanban, ExternalLink, MoreVertical, Pencil, Trash2, Loader2, ArrowDownToLine } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,13 +24,13 @@ export default function GroupsPage() {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<QRCodeGroupInstance | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
   
   const { data: groups = [], isLoading } = useQuery<QRCodeGroupInstance[]>({
     queryKey: ["/api/groups"],
     queryFn: async () => {
       if(user) {
         const QRCodeGroupList : QRCodeGroupInstance[] = await RetrieveQRCodeGroups(user.id);
-        console.log('retrievedList', QRCodeGroupList)
         return QRCodeGroupList;
       } else {
         logout();
@@ -84,6 +84,33 @@ export default function GroupsPage() {
     setLocation(`/groups/${id}`);
   };
 
+  const handleLoadMore = () => {
+    if(groups && user) {
+      setLoadingMore(true);
+      LoadMoreQRCodeGroupsPagination(
+        user.id,
+        groups[groups.length - 1]
+      ).then((newList) => {
+        groups.push(...newList);
+        setLoadingMore(false);
+        if(newList.length == 0) {
+          toast({
+            title: "There are no more Groups",
+            description: "All of your Groups are currently loaded",
+            variant: "destructive"
+          });
+        }
+      }).catch(()=>{
+        toast({
+          title: "Error when loading Groups",
+          description: "There was an unexpected error, try again later",
+          variant: "destructive"
+        });
+        setLoadingMore(false);
+      })
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="h-full overflow-auto">
@@ -127,81 +154,93 @@ export default function GroupsPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {groups.map((group) => (
-                <Card
-                  key={group.id}
-                  className="hover-elevate cursor-pointer"
-                  onClick={() => handleViewGroup(group.id)}
-                  data-testid={`card-group-${group.id}`}
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-lg truncate">
-                          {group.name}
-                        </CardTitle>
-                        <CardDescription className="mt-1 flex items-center gap-1 text-xs truncate">
-                          <ExternalLink className="h-3 w-3 flex-shrink-0" />
-                          {group.baseUrl != "" && (
-                            <span className="truncate">{group.baseUrl}</span>
-                          )}
-                          {group.baseUrl == "" && (
-                            <span className="truncate">base URL not provided</span>
-                          )}
-                        </CardDescription>
+            <div>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {groups.map((group) => (
+                  <Card
+                    key={group.id}
+                    className="hover-elevate cursor-pointer"
+                    onClick={() => handleViewGroup(group.id)}
+                    data-testid={`card-group-${group.id}`}
+                  >
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-lg truncate">
+                            {group.name}
+                          </CardTitle>
+                          <CardDescription className="mt-1 flex items-center gap-1 text-xs truncate">
+                            <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                            {group.baseUrl != "" && (
+                              <span className="truncate">{group.baseUrl}</span>
+                            )}
+                            {group.baseUrl == "" && (
+                              <span className="truncate">base URL not provided</span>
+                            )}
+                          </CardDescription>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              data-testid={`button-group-menu-${group.id}`}
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(group);
+                              }}
+                              data-testid={`button-edit-group-${group.id}`}
+                            >
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(group.id);
+                              }}
+                              className="text-destructive"
+                              data-testid={`button-delete-group-${group.id}`}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            data-testid={`button-group-menu-${group.id}`}
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEdit(group);
-                            }}
-                            data-testid={`button-edit-group-${group.id}`}
-                          >
-                            <Pencil className="h-4 w-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(group.id);
-                            }}
-                            className="text-destructive"
-                            data-testid={`button-delete-group-${group.id}`}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {group.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                        {group.description}
-                      </p>
-                    )}
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Badge variant="secondary" data-testid={`badge-qr-count-${group.id}`}>
-                        <FolderKanban className="h-3 w-3 mr-1" />
-                        View QR Codes
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardHeader>
+                    <CardContent>
+                      {group.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                          {group.description}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Badge variant="secondary" data-testid={`badge-qr-count-${group.id}`}>
+                          <FolderKanban className="h-3 w-3 mr-1" />
+                          View QR Codes
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              <div className="flex py-12 items-center justify-center gap-4 flex-wrap">
+                <Button onClick={handleLoadMore} disabled={loadingMore} data-testid="button-paginate-qr">
+                  {loadingMore ? (
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-secondary" />
+                  ) : (
+                    <ArrowDownToLine className="h-4 w-4 mr-2" />
+                  )}
+                  Load more QR Codes
+                </Button>
+              </div>
             </div>
           )}
         </div>
